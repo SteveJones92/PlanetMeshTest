@@ -72,6 +72,47 @@ public class IcosphereMesh : MonoBehaviour
     private int[] _triangles;
     [ShowInInspector, FoldoutGroup("Mesh")]
     private Vector3[] _vertices;
+    [ShowInInspector, FoldoutGroup("Mesh"), ColorPalette("Tropical")]
+    private Color[] _vertexColors;
+
+    [ShowInInspector, FoldoutGroup("Mesh"), PropertyRange(1, 20), OnValueChanged("UpdateFaceColor")]
+    private int _selectedFace = 1;
+
+    //[ShowInInspector]
+    private Color[] _selectedFacePreviousColors;
+    //[ShowInInspector]
+    private int[] _triangle;
+
+    private void UpdateFaceColor()
+    {
+        if (_triangle != null && _selectedFacePreviousColors != null)
+        {
+            _vertexColors[_triangle[0]] = _selectedFacePreviousColors[0];
+            _vertexColors[_triangle[1]] = _selectedFacePreviousColors[1];
+            _vertexColors[_triangle[2]] = _selectedFacePreviousColors[2];
+            UpdateMesh();
+        }
+
+        int position = (_selectedFace - 1) * 3;
+        _triangle = new[]
+        {
+            _mesh.triangles[position],
+            _mesh.triangles[position + 1],
+            _mesh.triangles[position + 2]
+        };
+
+        _selectedFacePreviousColors = new[]
+        {
+            _mesh.colors[_triangle[0]],
+            _mesh.colors[_triangle[1]],
+            _mesh.colors[_triangle[2]]
+        };
+        
+        _vertexColors[_triangle[0]] = Color.white;
+        _vertexColors[_triangle[1]] = Color.white;
+        _vertexColors[_triangle[2]] = Color.white;
+        UpdateMesh();
+    }
 
     [Title("Functions")]
     [ShowInInspector]
@@ -97,6 +138,7 @@ public class IcosphereMesh : MonoBehaviour
         _mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
         IcoMesh();
+        UpdateFaceColor();
     }
 
     float Length()
@@ -331,13 +373,23 @@ public class IcosphereMesh : MonoBehaviour
         };
 
         _mesh.triangles = _triangles;
+
+        _vertexColors = new Color[_vertices.Length];
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            _vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
+        }
+
+        _mesh.colors = _vertexColors;
     }
 
     [ShowInInspector]
     private void UpdateMesh()
     {
+        _mesh.Clear();
         _mesh.vertices = _vertices;
         _mesh.triangles = _triangles;
+        _mesh.colors = _vertexColors;
     }
     
 }
