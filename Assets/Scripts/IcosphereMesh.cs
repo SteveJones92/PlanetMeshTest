@@ -160,34 +160,6 @@ public class IcosphereMesh : MonoBehaviour
         // z = sqrt(1 - (2h/3)^2 page5
         return Mathf.Sqrt(1 - Mathf.Pow(2 * _h / 3, 2));
     }
-    
-    /*
-    Vector3[] Triangle()
-    {
-        //float h = height();
-        //float l = length();
-        //float z = zValue();
-        
-        // vertices of the triangle
-        // a = (ax, ay, az) = (-2h/3, 0, z) page5
-        Vector3 a = new Vector3(-2 * _hDiv3, 0, _z);
-        // b = (bx, by, bz) = (h/3, l/2, z) page5
-        Vector3 b = new Vector3(_hDiv3, _lHalf, _z);
-        // bb = (bx, b.-y, bz)
-        Vector3 bb = new Vector3(b.x, -b.y, b.z);
-        // p = (px, py, pz) = (ax, 0, -2az) page5
-        Vector3 p = new Vector3(a.x, 0, -2 * a.z);
-        
-        // midpoints for the spherical icosahedron triangle ribs
-        // c = (cx, cy, cz) = (bx / |bx, bz|, 0, bz / |bx, bz|)
-        float magBxBz = Mathf.Sqrt(Mathf.Pow(b.x, 2) + Mathf.Pow(b.z, 2));
-        Vector3 c = new Vector3(b.x / magBxBz, 0, b.z / magBxBz);
-        // m = (mx, my, mz) = (-cx / 2, sqrt(3 / 4) cx, cz)
-        Vector3 m = new Vector3(-c.x / 2, _sqrt3On4 * c.x, c.z);
-
-        return new Vector3[] { a, b, bb, p, c, m};
-    }
-    */
 
     Vector3 RotateClockwise(Vector3 point)
     {
@@ -198,7 +170,7 @@ public class IcosphereMesh : MonoBehaviour
     Vector3 RotateCounterClockwise(Vector3 point)
     {
         // frccw (Qxyz) = (-qy * sqrt(3/4) - qx / 2, qx * sqrt(3/4) - qy / 2, qz)
-        return new Vector3(point.y * _sqrt3On4 - point.x / 2, -point.x * _sqrt3On4 - point.y / 2, point.z);
+        return new Vector3(-point.y * _sqrt3On4 - point.x / 2, point.x * _sqrt3On4 - point.y / 2, point.z);
     }
 
     Vector3 FrontViewRotation90Cw(Vector3 point)
@@ -213,12 +185,12 @@ public class IcosphereMesh : MonoBehaviour
         return new Vector3(point.x, 0, point.z);
     }
 
-    Vector3 GetUnitVector(Vector3 point)
+    Vector3 GetUnitVectorComponent(Vector3 point)
     {
-        // fy(Qxyz) = (qx, sqrt(1 - qx^2 - qz^2), qz) -- qx^2 + qz^2 must be small than or equal to 1
+        // fy(Qxyz) = (qx, sqrt(1 - qx^2 - qz^2), qz) -- qx^2 + qz^2 must be smaller than or equal to 1
         float qxSq = Mathf.Pow(point.x, 2);
         float qzSq = Mathf.Pow(point.z, 2);
-        if (qxSq + qzSq > 1) throw new InvalidOperationException("qx^2 + qz^2 must be small than or equal to 1");
+        if (qxSq + qzSq > 1) throw new InvalidOperationException("qx^2 + qz^2 must be smaller than or equal to 1");
         return new Vector3(point.x, Mathf.Sqrt(1 - qxSq - qzSq), point.z);
     }
     
@@ -228,18 +200,25 @@ public class IcosphereMesh : MonoBehaviour
     // fL (Qxyz, Rxyz) = (L^v, Lp) = ( ^(r-q), q - ^(r-q) * (q . ^(r-q) ) = (L^v, q - L^v * (q . L^v))
     Line ConstructLine(Vector3 q, Vector3 r)
     {
-        Vector3 lv = GetUnitVector(r - q);
+        Vector3 lv = r - q;
+        lv /= lv.magnitude;
         return new Line(lv, q - lv * (Vector3.Dot(q, lv)));
     }
     
     // fu page11
     // To find the intersection points of a line intersecting the unit sphere
-    Vector3[] FindIntersectionPoints(Line l)
+    Vector3 FindIntersectionPoint(Line l)
     {
         float lpMag = l.point.magnitude;
         if (lpMag >= 1) throw new InvalidOperationException("Lp magnitude must be smaller than 1");
-        float val = Mathf.Sqrt(1 - Mathf.Pow(lpMag, 2));
-        return new Vector3[] { l.point + l.normal * val, l.point - l.normal * val };
+        Vector3 val = l.normal * Mathf.Sqrt(1 - Mathf.Pow(lpMag, 2));
+        Vector3 point = l.point + val;
+        if (point.z < 0)
+        {
+            point = l.point - val;
+        }
+        
+        return point;
     }
     
     // fm page 11
@@ -250,7 +229,7 @@ public class IcosphereMesh : MonoBehaviour
         Vector3 fxzq = FrontView2D(q);
         Vector3 fxzlp = FrontView2D(l.point);
         Vector3 fxzlv = FrontView2D(l.normal);
-        Vector3 fxzlvUnitV = GetUnitVector(fxzlv);
+        Vector3 fxzlvUnitV = fxzlv / fxzlv.magnitude;
 
         return fxzq + FrontViewRotation90Cw(fxzlvUnitV) * Vector3.Dot((2 * fxzlvUnitV), fxzlp - fxzq);
     }
@@ -272,7 +251,75 @@ public class IcosphereMesh : MonoBehaviour
         float aDotq = Vector3.Dot(_a, q);
         return _a * aDotq + _ffa * (Vector3.Dot(_ffa, q) * _s);
     }
+
+    Vector3 CutPointOne(Vector3 seedPoint)
+    {
+        /*
+        Vector3 sxz = FrontView2D(seedPoint); // fxz
+        Line lps = ConstructLine(_p, sxz); // fL
+        Vector3 t = FindIntersectionPoint(lps); // fu
+        Vector3 u = FrontView2D(RotateCounterClockwise(t)); // fxz(frccw)
+        Vector3 uow = EllipseScaleOutward(u); // fow
+        Line lpowuow = ConstructLine(uow, _pow); // fL
+        Vector3 c0ow = FindIntersectionPoint(lpowuow); // fu
+        Vector3 c0xz = CircleScaleInward(c0ow); // fiw
+        Vector3 c0 = GetUnitVectorComponent(c0xz); // fy
+        return c0;
+        */
+
+        return GetUnitVectorComponent(
+            CircleScaleInward(
+                FindIntersectionPoint(
+                    ConstructLine(
+                        EllipseScaleOutward(
+                            FrontView2D(
+                                RotateCounterClockwise(
+                                    FindIntersectionPoint(
+                                        ConstructLine(_p, FrontView2D(seedPoint)))))), 
+                        _pow))));
+    }
+
+    Vector3 CutPointTwo3DMethod(Vector3 c0)
+    {
+        return RotateCounterClockwise(c0);
+    }
     
+    Vector3 CutPointTwo2DMethod(Vector3 c0)
+    {
+        // omit fy (GetUnitVectorComponent)
+        // not working
+        return CircleScaleInward(FrontViewMirrorPointAlongLine(EllipseScaleOutward(c0), ConstructLine(Vector3.zero, _mow)));
+    }
+
+    Vector3[] FindCutPoints(Vector3 seedPoint)
+    {
+        // doubles, can initialize array just fine if needed
+        List<Vector3> newPoints = new List<Vector3>();
+
+        Vector3 c0 = CutPointOne(seedPoint);
+        Vector3 c1 = CutPointTwo3DMethod(c0);
+        newPoints.Add(c0);
+        newPoints.Add(c1);
+        newPoints.Add(new Vector3(c0.x, -c0.y, c0.z));
+        newPoints.Add(new Vector3(c1.x, -c1.y, c1.z));
+        return newPoints.ToArray();
+    }
+
+    void CalculateSlicingPlanes(Vector3 cutPoint)
+    {
+        Vector3 n = GetUnitVectorComponent(new Vector3(_p.z - cutPoint.z, 0, cutPoint.x - _p.x));
+        Plane c = new Plane(n, Vector3.Dot(n, _p));
+        Plane d = new Plane(RotateClockwise(c.unitVector), c.distToOrigin);
+        Plane e = new Plane(RotateCounterClockwise(c.unitVector), c.distToOrigin);
+
+        Line l = new Line(Vector3.Cross(c.unitVector, d.unitVector), cutPoint);
+        Line f = new Line(Vector3.Cross(c.unitVector, l.normal), c.unitVector * c.distToOrigin);
+        Line g = new Line(Vector3.Cross(d.unitVector, l.normal), d.unitVector * d.distToOrigin);
+        Vector3 lp = g.point + g.normal * (Vector3.Dot(f.point - g.point, c.unitVector) / Vector3.Dot(c.unitVector, g.normal));
+
+        Vector3 t = FindIntersectionPoint(l);
+    }
+
     // a line L is defined by its normal vector v and the point p on the line where it is nearest to the origin.
     // A line can be constructed as: L = (L^v, Lp)
     struct Line
@@ -304,7 +351,51 @@ public class IcosphereMesh : MonoBehaviour
             this.distToOrigin = distToOrigin;
         }
     }
-    
+
+    private List<Vector3> _displayPoints = new List<Vector3>();
+    [ShowInInspector]
+    void DisplayPoints()
+    {
+        _displayPoints.Clear();
+        _displayPoints.Add(_a);
+        _displayPoints.Add(_b);
+        _displayPoints.Add(_bb);
+        
+        _displayPoints.Add(_m);
+        Vector3 _m2 = RotateClockwise(_m);
+        Vector3 _m3 = RotateCounterClockwise(_m);
+        _displayPoints.Add(_m2);
+        _displayPoints.Add(_m3);
+
+        for (int i = 0; i < 1; i++)
+        {
+            foreach (var point in FindCutPoints(_m))
+            {
+                _displayPoints.Add(point);
+            }
+            foreach (var point in FindCutPoints(_m2))
+            {
+                //_displayPoints.Add(point);
+            }
+            foreach (var point in FindCutPoints(_m3))
+            {
+                //_displayPoints.Add(point);
+            }
+        }
+        
+        Debug.Log(_displayPoints.Count);
+    }
+
+    private Vector3 _t;
+    private void OnDrawGizmos()
+    {
+        _t = transform.localScale;
+        foreach (var point in _displayPoints)
+        {
+            Gizmos.DrawSphere(point, .05f);
+        }
+    }
+
     void IcoMesh()
     {
         float u = _lHalf;
@@ -391,5 +482,4 @@ public class IcosphereMesh : MonoBehaviour
         _mesh.triangles = _triangles;
         _mesh.colors = _vertexColors;
     }
-    
 }
