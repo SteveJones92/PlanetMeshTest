@@ -5,6 +5,7 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Serialization;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -166,7 +167,7 @@ public class IcosphereMesh : MonoBehaviour
         // frcw (Qxyz) = (qy * sqrt(3/4) - qx / 2, -qx * sqrt(3/4) - qy / 2, qz)
         return new Vector3(point.y * _sqrt3On4 - point.x / 2, -point.x * _sqrt3On4 - point.y / 2, point.z);
     }
-    
+
     Vector3 RotateCounterClockwise(Vector3 point)
     {
         // frccw (Qxyz) = (-qy * sqrt(3/4) - qx / 2, qx * sqrt(3/4) - qy / 2, qz)
@@ -194,14 +195,21 @@ public class IcosphereMesh : MonoBehaviour
         return new Vector3(point.x, Mathf.Sqrt(1 - qxSq - qzSq), point.z);
     }
     
+    Vector3 GetUnitVectorComponentZ(Vector3 point)
+    {
+        float qxSq = Mathf.Pow(point.x, 2);
+        float qySq = Mathf.Pow(point.y, 2);
+        if (qxSq + qySq > 1) throw new InvalidOperationException("qx^2 + qz^2 must be smaller than or equal to 1");
+        return new Vector3(point.x, point.y, Mathf.Sqrt(1 - qxSq - qySq));
+    }
+    
     // fL page10
     // To construct a line L with vector Lˆv and point Lp where the point Lp is the point on
     // the line that is the nearest to the origin, based on 2 vectors q and r, which are points on that line
     // fL (Qxyz, Rxyz) = (L^v, Lp) = ( ^(r-q), q - ^(r-q) * (q . ^(r-q) ) = (L^v, q - L^v * (q . L^v))
     Line ConstructLine(Vector3 q, Vector3 r)
     {
-        Vector3 lv = r - q;
-        lv /= lv.magnitude;
+        Vector3 lv = (r - q).normalized;
         return new Line(lv, q - lv * (Vector3.Dot(q, lv)));
     }
     
@@ -229,7 +237,7 @@ public class IcosphereMesh : MonoBehaviour
         Vector3 fxzq = FrontView2D(q);
         Vector3 fxzlp = FrontView2D(l.point);
         Vector3 fxzlv = FrontView2D(l.normal);
-        Vector3 fxzlvUnitV = fxzlv / fxzlv.magnitude;
+        Vector3 fxzlvUnitV = fxzlv.normalized;
 
         return fxzq + FrontViewRotation90Cw(fxzlvUnitV) * Vector3.Dot((2 * fxzlvUnitV), fxzlp - fxzq);
     }
@@ -290,6 +298,7 @@ public class IcosphereMesh : MonoBehaviour
         // not working
         return CircleScaleInward(FrontViewMirrorPointAlongLine(EllipseScaleOutward(c0), ConstructLine(Vector3.zero, _mow)));
     }
+    
 
     Vector3[] FindCutPoints(Vector3 seedPoint)
     {
@@ -297,27 +306,53 @@ public class IcosphereMesh : MonoBehaviour
         List<Vector3> newPoints = new List<Vector3>();
 
         Vector3 c0 = CutPointOne(seedPoint);
-        Vector3 c1 = CutPointTwo3DMethod(c0);
+        //Vector3 c1 = CutPointTwo3DMethod(c0);
         newPoints.Add(c0);
-        newPoints.Add(c1);
-        newPoints.Add(new Vector3(c0.x, -c0.y, c0.z));
-        newPoints.Add(new Vector3(c1.x, -c1.y, c1.z));
+        Vector3 c4 = RotateCounterClockwise(c0);
+        c4 = new Vector3(c4.x, -c4.y, c4.z);
+        newPoints.Add(c4);
         return newPoints.ToArray();
     }
 
-    void CalculateSlicingPlanes(Vector3 cutPoint)
+    Plane[] CalculateSlicingPlanes(Vector3 cutPoint)
     {
-        Vector3 n = GetUnitVectorComponent(new Vector3(_p.z - cutPoint.z, 0, cutPoint.x - _p.x));
+        Vector3 n = new Vector3(_p.z - cutPoint.z, 0, cutPoint.x - _p.x).normalized;
         Plane c = new Plane(n, Vector3.Dot(n, _p));
         Plane d = new Plane(RotateClockwise(c.unitVector), c.distToOrigin);
         Plane e = new Plane(RotateCounterClockwise(c.unitVector), c.distToOrigin);
+        return new Plane[] { c, d, e };
+    }
 
-        Line l = new Line(Vector3.Cross(c.unitVector, d.unitVector), cutPoint);
-        Line f = new Line(Vector3.Cross(c.unitVector, l.normal), c.unitVector * c.distToOrigin);
-        Line g = new Line(Vector3.Cross(d.unitVector, l.normal), d.unitVector * d.distToOrigin);
-        Vector3 lp = g.point + g.normal * (Vector3.Dot(f.point - g.point, c.unitVector) / Vector3.Dot(c.unitVector, g.normal));
+    Vector3 CalculateGridPoints(Plane a, Plane b)
+    {
+        Vector3 l = Vector3.Cross(a.unitVector, b.unitVector).normalized;
+        Line f = new Line(Vector3.Cross(a.unitVector, l).normalized, a.unitVector * a.distToOrigin);
+        Line g = new Line(Vector3.Cross(b.unitVector, l).normalized, b.unitVector * b.distToOrigin);
+        Vector3 lp = g.point + g.normal * (Vector3.Dot(f.point - g.point, a.unitVector) / Vector3.Dot(a.unitVector, g.normal));
 
-        Vector3 t = FindIntersectionPoint(l);
+        Line ll = new Line(l, lp);
+        Vector3 t = FindIntersectionPoint(ll);
+        return t;
+    }
+
+    Vector3[] GetNewPoints(Vector3 side1, Vector3 side2, int num)
+    {
+        //float leftRightRange = _b.x - RotateClockwise(_m).x;
+        float portion = 1 / (float)(num + 1);
+        portion *= 2;
+        float val = 1 - portion;
+        
+        Vector3[] points = new Vector3[num];
+        for (int i = 0; i < num; i++)
+        {
+            Vector3 newPoint = new Vector3(side1.x, side1.y * val, side1.z);
+            newPoint = GetUnitVectorComponentZ(newPoint);
+            //newPoint.x += 1 * (newPoint.x - RotateClockwise(_m).x) / leftRightRange;
+            points[i] = newPoint;
+            val -= portion;
+        }
+        
+        return points;
     }
 
     // a line L is defined by its normal vector v and the point p on the line where it is nearest to the origin.
@@ -351,35 +386,70 @@ public class IcosphereMesh : MonoBehaviour
             this.distToOrigin = distToOrigin;
         }
     }
+    [ShowInInspector, OnValueChanged("DisplayPoints"), CustomValueDrawer("MinMaxGenerations")]
+    private float _generations = 1;
 
+    private static int MinMaxGenerations(int value, GUIContent label)
+    {
+        return EditorGUILayout.IntSlider(label, value, 0, 6);
+    }
+    
     private List<Vector3> _displayPoints = new List<Vector3>();
     [ShowInInspector]
     void DisplayPoints()
     {
         _displayPoints.Clear();
+        // 3 corners
         _displayPoints.Add(_a);
         _displayPoints.Add(_b);
         _displayPoints.Add(_bb);
+        _displayPoints.Add(Vector3.forward);
         
+        // seedPoint center rib
         _displayPoints.Add(_m);
-        Vector3 _m2 = RotateClockwise(_m);
-        Vector3 _m3 = RotateCounterClockwise(_m);
-        _displayPoints.Add(_m2);
-        _displayPoints.Add(_m3);
 
-        for (int i = 0; i < 1; i++)
+        // list to store new points, start with seedPoint
+        List<Vector3> cutPoints = new List<Vector3>();
+        cutPoints.Add(_m);
+        
+        Vector3 cp;
+        int pos = 0;
+        for (int i = 0; i < (int) _generations; i++)
         {
-            foreach (var point in FindCutPoints(_m))
+            int val = cutPoints.Count;
+            for (int j = pos; j < val; j++)
             {
-                _displayPoints.Add(point);
+                cp = cutPoints[j];
+                pos++;
+                
+                foreach (var point in FindCutPoints(cp))
+                {
+                    cutPoints.Add(point);
+                    _displayPoints.Add(point);
+                }
             }
-            foreach (var point in FindCutPoints(_m2))
+        }
+
+        cutPoints.Sort((x, y) => (y.x.CompareTo(x.x)));
+
+        int num = cutPoints.Count - 1;
+        // generation 1
+        //int[] nums = new int[] { 1, 2, 0 };
+        // generation 2
+        //int[] nums = new int[] { 3, 5, 1, 4, 2, 6, 0 };
+        // generation 3
+        //int[] nums = new int[] { 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+        int idx = 0;
+        foreach (var point in cutPoints)
+        {
+            _displayPoints.Add(RotateClockwise(point));
+            _displayPoints.Add(RotateCounterClockwise(point));
+            Vector3 opposite = new Vector3(point.x, -point.y, point.z);
+            //_displayPoints.Add(opposite);
+            
+            foreach (var newPoint in GetNewPoints(point, opposite, num--))
             {
-                //_displayPoints.Add(point);
-            }
-            foreach (var point in FindCutPoints(_m3))
-            {
-                //_displayPoints.Add(point);
+                _displayPoints.Add(newPoint);
             }
         }
         
@@ -392,7 +462,7 @@ public class IcosphereMesh : MonoBehaviour
         _t = transform.localScale;
         foreach (var point in _displayPoints)
         {
-            Gizmos.DrawSphere(point, .05f);
+            Gizmos.DrawSphere(point, .005f);
         }
     }
 
