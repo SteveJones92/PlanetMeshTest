@@ -59,6 +59,10 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("m")]
     // m = (mx, my, mz) = (-cx / 2, sqrt(3 / 4) cx, cz)
     private Vector3 _m;
+    [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("m2")]
+    private Vector3 _m2;
+    [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("m3")]
+    private Vector3 _m3;
     [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("fv90Cw_a")]
     // FrontViewRotation90Cw of _a
     private Vector3 _ffa;
@@ -98,6 +102,8 @@ public class IcosphereMesh : MonoBehaviour
         _magBxBz = Mathf.Sqrt(Mathf.Pow(_b.x, 2) + Mathf.Pow(_b.z, 2));
         _c = new Vector3(_b.x / _magBxBz, 0, _b.z / _magBxBz);
         _m = new Vector3(-_c.x / 2, _sqrt3On4 * _c.x, _c.z);
+        _m2 = RotateClockwise(_m);
+        _m3 = RotateCounterClockwise(_m);
         _ffa = FrontViewRotation90Cw(_a);
         _mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
@@ -121,7 +127,7 @@ public class IcosphereMesh : MonoBehaviour
     {
         //float h = height();
         // z = sqrt(1 - (2h/3)^2 page5
-        return Mathf.Sqrt(1 - Mathf.Pow(2 * _h / 3, 2));
+        return Mathf.Sqrt(1 - Mathf.Pow(2 * _h / 3f, 2));
     }
 
     Vector3 RotateClockwise(Vector3 point)
@@ -408,7 +414,7 @@ public class IcosphereMesh : MonoBehaviour
         
         for (int i = 0; i < _vertices.Length; i++)
         {
-            _vertices[i] = new Vector3(_vertices[i].x, _vertices[i].y, _vertices[i].z + UnityEngine.Random.Range(-0.03f, 0.03f));
+            //_vertices[i] = new Vector3(_vertices[i].x, _vertices[i].y, _vertices[i].z + UnityEngine.Random.Range(-0.03f, 0.03f));
         }
 
         _mesh = new Mesh();
@@ -459,6 +465,43 @@ public class IcosphereMesh : MonoBehaviour
         Debug.Log(_displayPoints.Count);
     }
 
+    private List<Vector3> _newGridPoints = new List<Vector3>();
+    [ShowInInspector]
+    void DisplayGrid()
+    {
+        _newGridPoints.Clear();
+        // number of vertices that will finally be placed
+        int numVerts = (int)(Mathf.Pow(2, (int)_generations + 1) + 1) * (int)(Mathf.Pow(2,(int)_generations) + 1);
+        // number of items in columns and row (defines the split)
+        int columnSize = (int)Mathf.Pow(2, (int)_generations + 1) + 1;
+        // amount to shift will always be the same
+        float horizontalShift = .910593f / (columnSize - 1);
+        // adjust down for diminishing height
+        float heightAdjust = 0.5257311f / (columnSize - 1);
+        float height = 1.0514622f;
+        // amount shifted
+        int horizontalSpot = 0;
+        while (columnSize > 0)
+        {
+            float verticalShift = height / (columnSize - 1);
+            if (columnSize == 1) verticalShift = 0f;
+            float columnSpot = 0;
+            for (int i = 0; i < columnSize; i++)
+            {
+                _newGridPoints.Add(
+                    GetUnitVectorComponentZ(
+                        new Vector3(0.303531f - horizontalShift * horizontalSpot,
+                            (height / 2f) - verticalShift * columnSpot,
+                            0f)));
+                columnSpot++;
+            }
+
+            horizontalSpot++;
+            columnSize--;
+            height -= heightAdjust * 2;
+        }
+    }
+
     private Vector3 _t;
     private void OnDrawGizmos()
     {
@@ -471,6 +514,13 @@ public class IcosphereMesh : MonoBehaviour
             //Handles.Label(point, i.ToString());
             //Gizmos.DrawSphere(point, .01f);
         }
+        Gizmos.color = Color.blue;
+        foreach (var point in _newGridPoints)
+        {
+            Gizmos.DrawSphere(point, .01f);
+        }
+
+        //Gizmos.DrawSphere(Vector3.forward, 0.01f);
     }
 
     [ShowInInspector]
