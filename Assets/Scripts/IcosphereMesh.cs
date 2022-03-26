@@ -5,8 +5,10 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Serialization;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using Random = System.Random;
 
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
@@ -76,45 +78,6 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, FoldoutGroup("Mesh"), ColorPalette("Tropical")]
     private Color[] _vertexColors;
 
-    [ShowInInspector, FoldoutGroup("Mesh"), PropertyRange(1, 20), OnValueChanged("UpdateFaceColor")]
-    private int _selectedFace = 1;
-
-    //[ShowInInspector]
-    private Color[] _selectedFacePreviousColors;
-    //[ShowInInspector]
-    private int[] _triangle;
-
-    private void UpdateFaceColor()
-    {
-        if (_triangle != null && _selectedFacePreviousColors != null)
-        {
-            _vertexColors[_triangle[0]] = _selectedFacePreviousColors[0];
-            _vertexColors[_triangle[1]] = _selectedFacePreviousColors[1];
-            _vertexColors[_triangle[2]] = _selectedFacePreviousColors[2];
-            UpdateMesh();
-        }
-
-        int position = (_selectedFace - 1) * 3;
-        _triangle = new[]
-        {
-            _mesh.triangles[position],
-            _mesh.triangles[position + 1],
-            _mesh.triangles[position + 2]
-        };
-
-        _selectedFacePreviousColors = new[]
-        {
-            _mesh.colors[_triangle[0]],
-            _mesh.colors[_triangle[1]],
-            _mesh.colors[_triangle[2]]
-        };
-        
-        _vertexColors[_triangle[0]] = Color.white;
-        _vertexColors[_triangle[1]] = Color.white;
-        _vertexColors[_triangle[2]] = Color.white;
-        UpdateMesh();
-    }
-
     [Title("Functions")]
     [ShowInInspector]
     private void Start()
@@ -138,8 +101,7 @@ public class IcosphereMesh : MonoBehaviour
         _ffa = FrontViewRotation90Cw(_a);
         _mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
-        IcoMesh();
-        UpdateFaceColor();
+        DisplayPoints();
     }
 
     float Length()
@@ -197,10 +159,10 @@ public class IcosphereMesh : MonoBehaviour
     
     Vector3 GetUnitVectorComponentZ(Vector3 point)
     {
-        float qxSq = Mathf.Pow(point.x, 2);
-        float qySq = Mathf.Pow(point.y, 2);
+        float qxSq = Mathf.Pow(point.x, 2f);
+        float qySq = Mathf.Pow(point.y, 2f);
         if (qxSq + qySq > 1) throw new InvalidOperationException("qx^2 + qz^2 must be smaller than or equal to 1");
-        return new Vector3(point.x, point.y, Mathf.Sqrt(1 - qxSq - qySq));
+        return new Vector3(point.x, point.y, Mathf.Sqrt(1f - qxSq - qySq));
     }
     
     // fL page10
@@ -335,9 +297,8 @@ public class IcosphereMesh : MonoBehaviour
         return t;
     }
 
-    Vector3[] GetNewPoints(Vector3 side1, Vector3 side2, int num)
+    Vector3[] GetNewPoints(Vector3 side1, int num)
     {
-        //float leftRightRange = _b.x - RotateClockwise(_m).x;
         float portion = 1 / (float)(num + 1);
         portion *= 2;
         float val = 1 - portion;
@@ -347,7 +308,6 @@ public class IcosphereMesh : MonoBehaviour
         {
             Vector3 newPoint = new Vector3(side1.x, side1.y * val, side1.z);
             newPoint = GetUnitVectorComponentZ(newPoint);
-            //newPoint.x += 1 * (newPoint.x - RotateClockwise(_m).x) / leftRightRange;
             points[i] = newPoint;
             val -= portion;
         }
@@ -391,7 +351,7 @@ public class IcosphereMesh : MonoBehaviour
 
     private static int MinMaxGenerations(int value, GUIContent label)
     {
-        return EditorGUILayout.IntSlider(label, value, 0, 6);
+        return EditorGUILayout.IntSlider(label, value, 0, 5);
     }
     
     private List<Vector3> _displayPoints = new List<Vector3>();
@@ -399,14 +359,8 @@ public class IcosphereMesh : MonoBehaviour
     void DisplayPoints()
     {
         _displayPoints.Clear();
-        // 3 corners
-        _displayPoints.Add(_a);
-        _displayPoints.Add(_b);
-        _displayPoints.Add(_bb);
-        _displayPoints.Add(Vector3.forward);
-        
-        // seedPoint center rib
-        _displayPoints.Add(_m);
+        // center
+        //_displayPoints.Add(Vector3.forward);
 
         // list to store new points, start with seedPoint
         List<Vector3> cutPoints = new List<Vector3>();
@@ -425,123 +379,98 @@ public class IcosphereMesh : MonoBehaviour
                 foreach (var point in FindCutPoints(cp))
                 {
                     cutPoints.Add(point);
-                    _displayPoints.Add(point);
                 }
             }
         }
-
+   
         cutPoints.Sort((x, y) => (y.x.CompareTo(x.x)));
 
+        _displayPoints.Add(_b);
+
+        for (int i = cutPoints.Count - 1; i >= 0; i--) _displayPoints.Add(RotateClockwise(cutPoints[i]));
+
+        _displayPoints.Add(_bb);
+        
         int num = cutPoints.Count - 1;
-        // generation 1
-        //int[] nums = new int[] { 1, 2, 0 };
-        // generation 2
-        //int[] nums = new int[] { 3, 5, 1, 4, 2, 6, 0 };
-        // generation 3
-        //int[] nums = new int[] { 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
-        int idx = 0;
         foreach (var point in cutPoints)
         {
-            _displayPoints.Add(RotateClockwise(point));
-            _displayPoints.Add(RotateCounterClockwise(point));
-            Vector3 opposite = new Vector3(point.x, -point.y, point.z);
-            //_displayPoints.Add(opposite);
-            
-            foreach (var newPoint in GetNewPoints(point, opposite, num--))
+            _displayPoints.Add(point);
+            foreach (var newPoint in GetNewPoints(point, num--))
             {
                 _displayPoints.Add(newPoint);
             }
+            _displayPoints.Add(new Vector3(point.x, -point.y, point.z));
         }
+        _displayPoints.Add(_a);
+        // place vertices
+        _vertices = _displayPoints.ToArray();
+
         
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            _vertices[i] = new Vector3(_vertices[i].x, _vertices[i].y, _vertices[i].z + UnityEngine.Random.Range(-0.03f, 0.03f));
+        }
+
+        _mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = _mesh;
+        
+        _mesh.vertices = _vertices;
+
+        List<int> triangleList = new List<int>();
+
+        int columnSize = (int)Mathf.Pow(2, (int)_generations + 1) + 1;
+        int offset = 0;
+        // only go up to last 2
+        while (columnSize > 1)
+        {
+            for (int i = 0; i < columnSize - 1; i++)
+            {
+                int j = i + 1;
+                //Debug.Log(i + offset + " " + (j + offset) + " " + (i + offset + columnSize));
+                triangleList.Add(j + offset);
+                triangleList.Add(i + offset);
+                triangleList.Add(i + offset + columnSize);
+
+                if (offset != 0)
+                {
+                    triangleList.Add(i + offset);
+                    triangleList.Add(j + offset);
+                    triangleList.Add(i + offset - columnSize);
+                }
+            }
+
+            offset += columnSize;
+            columnSize--;
+        }
+
+        _triangles = triangleList.ToArray();
+        _mesh.triangles = _triangles;
+
+        _vertexColors = new Color[_vertices.Length];
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            //_vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
+            _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
+                UnityEngine.Random.Range(0, 255) / 255f);
+        }
+
+        _mesh.colors = _vertexColors;
+
         Debug.Log(_displayPoints.Count);
     }
 
     private Vector3 _t;
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.green;
         _t = transform.localScale;
+        int i = 0;
         foreach (var point in _displayPoints)
         {
-            Gizmos.DrawSphere(point, .005f);
+            i++;
+            //Handles.Label(point, i.ToString());
+            //Gizmos.DrawSphere(point, .01f);
         }
-    }
-
-    void IcoMesh()
-    {
-        float u = _lHalf;
-        float v = Mathf.Sqrt(1 - _lHalfSq);
-
-       _vertices = new Vector3[]
-        {
-            new Vector3(0, -v, u),
-            new Vector3(v, -u, 0),
-            new Vector3(u, 0, v),
-            new Vector3(v, u, 0),
-            new Vector3(0, v, u),
-            new Vector3(0, v, -u),
-            new Vector3(-v, u, 0),
-            new Vector3(-u, 0, -v),
-            new Vector3(-v, -u, 0),
-            new Vector3(0, -v, -u),
-            new Vector3(-u, 0, v),
-            new Vector3(u, 0, -v)
-        };
-
-        _mesh = new Mesh();
-        GetComponent<MeshFilter>().mesh = _mesh;
-
-        _mesh.vertices = _vertices;
-        /*
-        mesh.normals = new Vector3[]
-        {
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back,
-            Vector3.back
-        };
-        */
-        
-        _triangles = new int[]
-        {
-            0,1,2,
-            2,1,3,
-            2,3,4,
-            4,3,5,
-            4,5,6,
-            6,5,7,
-            6,7,8,
-            8,7,9,
-            0,2,10,
-            3,1,11,
-            5,3,11,
-            7,5,11,
-            9,7,11,
-            2,4,10,
-            4,6,10,
-            6,8,10,
-            8,9,0,
-            0,9,1,
-            1,9,11,
-            8,0,10
-        };
-
-        _mesh.triangles = _triangles;
-
-        _vertexColors = new Color[_vertices.Length];
-        for (int i = 0; i < _vertices.Length; i++)
-        {
-            _vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
-        }
-
-        _mesh.colors = _vertexColors;
     }
 
     [ShowInInspector]
