@@ -107,7 +107,8 @@ public class IcosphereMesh : MonoBehaviour
         _ffa = FrontViewRotation90Cw(_a);
         _mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
-        DisplayPoints();
+        //DisplayPoints();
+        DisplayGrid();
     }
 
     float Length()
@@ -352,18 +353,24 @@ public class IcosphereMesh : MonoBehaviour
             this.distToOrigin = distToOrigin;
         }
     }
-    [ShowInInspector, OnValueChanged("DisplayPoints"), CustomValueDrawer("MinMaxGenerations")]
+    [ShowInInspector, OnValueChanged("DisplayGrid"), CustomValueDrawer("MinMaxGenerations")]
     private float _generations = 1;
+    
+    [ShowInInspector, OnValueChanged("DisplayGrid"), MinValue(1)]
+    private float _perlinXYScale = 1;
+    [ShowInInspector, OnValueChanged("DisplayGrid"), MinValue(1)]
+    private float _perlinOutputScale = 1;
 
     private static int MinMaxGenerations(int value, GUIContent label)
     {
-        return EditorGUILayout.IntSlider(label, value, 0, 5);
+        return EditorGUILayout.IntSlider(label, value, 0, 7);
     }
     
     private List<Vector3> _displayPoints = new List<Vector3>();
     [ShowInInspector]
     void DisplayPoints()
     {
+        float timer = Time.realtimeSinceStartup;
         _displayPoints.Clear();
         // center
         //_displayPoints.Add(Vector3.forward);
@@ -463,12 +470,14 @@ public class IcosphereMesh : MonoBehaviour
         _mesh.colors = _vertexColors;
 
         Debug.Log(_displayPoints.Count);
+        Debug.Log(Time.realtimeSinceStartup - timer);
     }
 
     private List<Vector3> _newGridPoints = new List<Vector3>();
     [ShowInInspector]
     void DisplayGrid()
     {
+        float timer = Time.realtimeSinceStartup;
         _newGridPoints.Clear();
         // number of vertices that will finally be placed
         int numVerts = (int)(Mathf.Pow(2, (int)_generations + 1) + 1) * (int)(Mathf.Pow(2,(int)_generations) + 1);
@@ -504,6 +513,59 @@ public class IcosphereMesh : MonoBehaviour
         }
 
         _vertices = _newGridPoints.ToArray();
+        
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            _vertices[i] = new Vector3(_vertices[i].x, _vertices[i].y, _vertices[i].z + Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale);
+        }
+        
+        _mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = _mesh;
+        
+        _mesh.vertices = _vertices;
+
+        List<int> triangleList = new List<int>();
+
+        columnSize = (int)Mathf.Pow(2, (int)_generations + 1) + 1;
+        int offset = 0;
+        // only go up to last 2
+        while (columnSize > 1)
+        {
+            for (int i = 0; i < columnSize - 1; i++)
+            {
+                int j = i + 1;
+                //Debug.Log(i + offset + " " + (j + offset) + " " + (i + offset + columnSize));
+                triangleList.Add(j + offset);
+                triangleList.Add(i + offset);
+                triangleList.Add(i + offset + columnSize);
+
+                if (offset != 0)
+                {
+                    triangleList.Add(i + offset);
+                    triangleList.Add(j + offset);
+                    triangleList.Add(i + offset - columnSize);
+                }
+            }
+
+            offset += columnSize;
+            columnSize--;
+        }
+
+        _triangles = triangleList.ToArray();
+        _mesh.triangles = _triangles;
+
+        _vertexColors = new Color[_vertices.Length];
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            //_vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
+            _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
+                UnityEngine.Random.Range(0, 255) / 255f);
+        }
+
+        _mesh.colors = _vertexColors;
+
+        Debug.Log(_newGridPoints.Count);
+        Debug.Log(Time.realtimeSinceStartup - timer);
     }
 
     // curve offset from 2 points
@@ -533,7 +595,7 @@ public class IcosphereMesh : MonoBehaviour
         Gizmos.color = Color.blue;
         foreach (var point in _newGridPoints)
         {
-            Gizmos.DrawSphere(point, .005f);
+            //Gizmos.DrawSphere(point, .005f);
         }
 
         Gizmos.color = Color.magenta;
