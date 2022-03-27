@@ -157,8 +157,8 @@ public class IcosphereMesh : MonoBehaviour
         _ffa = FrontViewRotation90Cw(_a);
         _mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
-        IcoMesh();
-        UpdateFaceColor();
+        //IcoMesh();
+        //UpdateFaceColor();
     }
 
     float Length()
@@ -418,6 +418,11 @@ public class IcosphereMesh : MonoBehaviour
     }
     [ShowInInspector, OnValueChanged("DisplayPoints"), CustomValueDrawer("MinMaxGenerations")]
     private float _generations = 1;
+    
+    [ShowInInspector, OnValueChanged("DisplayPoints"), MinValue(1)]
+    private float _perlinXYScale = 1;
+    [ShowInInspector, OnValueChanged("DisplayPoints"), MinValue(1)]
+    private float _perlinOutputScale = 1;
 
     private static int MinMaxGenerations(int value, GUIContent label)
     {
@@ -515,6 +520,52 @@ public class IcosphereMesh : MonoBehaviour
             //geodesic_grid[i] = new Vector3( geodesic_grid[i][0]* (float)cval +  (float)sval* geodesic_grid[i][2], geodesic_grid[i].y, geodesic_grid[i][0]* -(float)sval +  (float)cval* geodesic_grid[i][2]);
             //_displayPoints.Add(geodesic_grid[i]);                            // uncomment this to see the rotation
         }
+
+        _vertices = geodesic_grid.ToArray();
+        
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            _vertices[i] = new Vector3(_vertices[i].x, _vertices[i].y, _vertices[i].z + Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale);
+        }
+        
+        List<int> triangleList = new List<int>();
+
+        int columnSize = (int)Mathf.Pow(2, (int)_generations + 1) + 1;
+        int offset = 0;
+        // only go up to last 2
+        while (columnSize > 1)
+        {
+            for (int i = 0; i < columnSize - 1; i++)
+            {
+                int j = i + 1;
+                //Debug.Log(i + offset + " " + (j + offset) + " " + (i + offset + columnSize));
+                triangleList.Add(i + offset);
+                triangleList.Add(j + offset);
+                triangleList.Add(i + offset + columnSize);
+
+                if (offset != 0)
+                {
+                    triangleList.Add(j + offset);
+                    triangleList.Add(i + offset);
+                    triangleList.Add(i + offset - columnSize);
+                }
+            }
+
+            offset += columnSize;
+            columnSize--;
+        }
+
+        _triangles = triangleList.ToArray();
+        
+        _vertexColors = new Color[_vertices.Length];
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            //_vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
+            _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
+                UnityEngine.Random.Range(0, 255) / 255f);
+        }
+
+        UpdateMesh();
     }
     
     int timer_count = 0;
@@ -547,6 +598,7 @@ public class IcosphereMesh : MonoBehaviour
     private void OnDrawGizmos()
     {
         _t = transform.localScale;
+        Gizmos.color = Color.green;
         foreach (var point in _displayPoints)
         {
             Gizmos.DrawSphere(point, .005f);
