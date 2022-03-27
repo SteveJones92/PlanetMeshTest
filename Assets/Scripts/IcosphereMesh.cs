@@ -429,7 +429,7 @@ public class IcosphereMesh : MonoBehaviour
 
     private static int MinMaxGenerations(int value, GUIContent label)
     {
-        return EditorGUILayout.IntSlider(label, value, 0, 6);
+        return EditorGUILayout.IntSlider(label, value, 0, 8);
     }
     
     private List<Vector3> _displayPoints = new List<Vector3>();
@@ -438,6 +438,7 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector]
     void DisplayPoints()
     {
+        float timer = Time.realtimeSinceStartup;
         _displayPoints.Clear();
         allcutPoints.Clear();
         geodesic_grid.Clear();
@@ -569,6 +570,103 @@ public class IcosphereMesh : MonoBehaviour
         }
 
         UpdateMesh();
+        Debug.Log(Time.realtimeSinceStartup - timer);
+    }
+    
+    private Vector3[] _newGridPoints;// = new List<Vector3>();
+    [ShowInInspector]
+    void DisplayGrid()
+    {
+        float timer = Time.realtimeSinceStartup;
+        //_newGridPoints.Clear();
+        // number of vertices that will finally be placed
+        int numVerts = (int)(Mathf.Pow(2, (int)_generations + 1) + 1) * (int)(Mathf.Pow(2,(int)_generations) + 1);
+        _newGridPoints = new Vector3[numVerts];
+        // number of items in columns and row (defines the split)
+        int columnSize = (int)Mathf.Pow(2, (int)_generations + 1) + 1;
+        // amount to shift will always be the same
+        float horizontalShift = .910593f / (columnSize - 1);
+        // adjust down for diminishing height
+        float height = 1.0514622f / 2f;
+        // amount shifted
+        int horizontalSpot = 0;
+        int leftSideIndex = columnSize - 1;
+        float x = 0.303531f;
+        int index = 0;
+        while (true)
+        {
+            float verticalShift = height / (columnSize - 1);
+            if (columnSize == 1) verticalShift = 0f;
+            float columnSpot = 0;
+            for (int i = 0; i < columnSize; i++)
+            {
+                float y = height - (verticalShift * 2f) * columnSpot;
+                
+                Vector3 v = GetUnitVectorComponentZ(new Vector3(x > 0 ? x + GetOffsetX(y) * (x / 0.303531f) : x, y, 0f));
+                _newGridPoints[index++] = v;
+                //_newGridPoints.Add(v);
+                columnSpot++;
+            }
+
+            horizontalSpot++;
+            columnSize--;
+            if (columnSize == 0) break;
+            height = RotateCounterClockwise(_newGridPoints[leftSideIndex - horizontalSpot]).y;
+            x = RotateCounterClockwise(_newGridPoints[leftSideIndex - horizontalSpot ]).x;
+        }
+
+        _vertices = _newGridPoints;//.ToArray();
+        
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            _vertices[i] = new Vector3(_vertices[i].x, _vertices[i].y, _vertices[i].z + Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale);
+        }
+
+        List<int> triangleList = new List<int>();
+
+        columnSize = (int)Mathf.Pow(2, (int)_generations + 1) + 1;
+        int offset = 0;
+        // only go up to last 2
+        while (columnSize > 1)
+        {
+            for (int i = 0; i < columnSize - 1; i++)
+            {
+                int j = i + 1;
+                //Debug.Log(i + offset + " " + (j + offset) + " " + (i + offset + columnSize));
+                triangleList.Add(j + offset);
+                triangleList.Add(i + offset);
+                triangleList.Add(i + offset + columnSize);
+
+                if (offset != 0)
+                {
+                    triangleList.Add(i + offset);
+                    triangleList.Add(j + offset);
+                    triangleList.Add(i + offset - columnSize);
+                }
+            }
+
+            offset += columnSize;
+            columnSize--;
+        }
+
+        _triangles = triangleList.ToArray();
+
+        _vertexColors = new Color[_vertices.Length];
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            //_vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
+            _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
+                UnityEngine.Random.Range(0, 255) / 255f);
+        }
+        UpdateMesh();
+        //Debug.Log(_newGridPoints.Count);
+        Debug.Log(Time.realtimeSinceStartup - timer);
+    }
+
+    // curve offset from 2 points
+    float GetOffsetX(float x)
+    {
+        return -(1 / 5.19f) * Mathf.Pow(x, 2) + 0.0532911f;
     }
     
     int timer_count = 0;
@@ -597,15 +695,34 @@ public class IcosphereMesh : MonoBehaviour
             aTimer.Stop();
         }
     }
+
+    [ShowInInspector, ToggleLeft] private bool displayPoints = false;
+    [ShowInInspector, ToggleLeft] private bool displayGrid = false;
+    
     private Vector3 _t;
     private void OnDrawGizmos()
     {
         _t = transform.localScale;
         Gizmos.color = Color.green;
-        //foreach (var point in _displayPoints)
+        if (displayPoints)
         {
-            //Gizmos.DrawSphere(point, .005f);
+            foreach (var point in _displayPoints)
+            {
+                Gizmos.DrawSphere(point, .005f);
+            }
         }
+
+        Gizmos.color = Color.blue;
+        if (displayGrid)
+        {
+            foreach (var point in _newGridPoints)
+            {
+                Gizmos.DrawSphere(point, .005f);
+            }
+        }
+
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawSphere(Vector3.forward, .01f);
     }
 
     void IcoMesh()
