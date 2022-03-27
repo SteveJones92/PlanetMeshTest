@@ -488,11 +488,12 @@ public class IcosphereMesh : MonoBehaviour
             float columnSpot = 0;
             for (int i = 0; i < columnSize; i++)
             {
-                _newGridPoints.Add(
-                    GetUnitVectorComponentZ(
-                        new Vector3(0.303531f - horizontalShift * horizontalSpot,
-                            (height / 2f) - verticalShift * columnSpot,
-                            0f)));
+                float x = 0.303531f - horizontalShift * horizontalSpot;
+                float y = (height / 2f) - verticalShift * columnSpot;
+                if (x > 0) x += GetOffsetX(y) * (x / 0.303531f);
+                
+                Vector3 v = GetUnitVectorComponentZ(new Vector3(x, y, 0f));
+                _newGridPoints.Add(v);
                 columnSpot++;
             }
 
@@ -500,6 +501,20 @@ public class IcosphereMesh : MonoBehaviour
             columnSize--;
             height -= heightAdjust * 2;
         }
+
+        _vertices = _newGridPoints.ToArray();
+    }
+
+    // curve offset from 2 points
+    float GetOffsetX(float x)
+    {
+        return -(1 / 5.19f) * Mathf.Pow(x, 2) + 0.0532911f;
+    }
+    
+    // curve offset from 2 points
+    float GetOffsetY(float x)
+    {
+        return -(1 / 5.19f) * Mathf.Pow(x, 2) + 0.0532911f;
     }
 
     private Vector3 _t;
@@ -512,15 +527,16 @@ public class IcosphereMesh : MonoBehaviour
         {
             i++;
             //Handles.Label(point, i.ToString());
-            //Gizmos.DrawSphere(point, .01f);
+            //Gizmos.DrawSphere(point, .005f);
         }
         Gizmos.color = Color.blue;
         foreach (var point in _newGridPoints)
         {
-            Gizmos.DrawSphere(point, .01f);
+            Gizmos.DrawSphere(point, .005f);
         }
 
-        //Gizmos.DrawSphere(Vector3.forward, 0.01f);
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawSphere(Vector3.forward, 0.005f);
     }
 
     [ShowInInspector]
