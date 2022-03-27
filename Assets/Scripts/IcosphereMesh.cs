@@ -77,7 +77,7 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, FoldoutGroup("Mesh"), ColorPalette("Tropical")]
     private Color[] _vertexColors;
 
-    [ShowInInspector, FoldoutGroup("Mesh"), PropertyRange(1, 20), OnValueChanged("UpdateFaceColor")]
+    //[ShowInInspector, FoldoutGroup("Mesh"), PropertyRange(1, 20), OnValueChanged("UpdateFaceColor")]
     private int _selectedFace = 1;
     public static double ConvertDegreesToRadians (double degrees)
     {
@@ -157,6 +157,9 @@ public class IcosphereMesh : MonoBehaviour
         _ffa = FrontViewRotation90Cw(_a);
         _mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
+        _mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = _mesh;
+        DisplayPoints();
         //IcoMesh();
         //UpdateFaceColor();
     }
@@ -560,9 +563,9 @@ public class IcosphereMesh : MonoBehaviour
         _vertexColors = new Color[_vertices.Length];
         for (int i = 0; i < _vertices.Length; i++)
         {
-            //_vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
-            _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
-                UnityEngine.Random.Range(0, 255) / 255f);
+            _vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
+            //_vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
+                //UnityEngine.Random.Range(0, 255) / 255f);
         }
 
         UpdateMesh();
@@ -599,9 +602,9 @@ public class IcosphereMesh : MonoBehaviour
     {
         _t = transform.localScale;
         Gizmos.color = Color.green;
-        foreach (var point in _displayPoints)
+        //foreach (var point in _displayPoints)
         {
-            Gizmos.DrawSphere(point, .005f);
+            //Gizmos.DrawSphere(point, .005f);
         }
     }
 
