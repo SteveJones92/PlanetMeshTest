@@ -7,6 +7,7 @@ using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
+using System.Timers;
 
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
@@ -78,12 +79,30 @@ public class IcosphereMesh : MonoBehaviour
 
     [ShowInInspector, FoldoutGroup("Mesh"), PropertyRange(1, 20), OnValueChanged("UpdateFaceColor")]
     private int _selectedFace = 1;
-
+    public static double ConvertDegreesToRadians (double degrees)
+    {
+        double radians = (Math.PI / 180) * degrees;
+        return (radians);
+    }
     //[ShowInInspector]
     private Color[] _selectedFacePreviousColors;
     //[ShowInInspector]
     private int[] _triangle;
+    private static System.Timers.Timer aTimer;
+    public static int IntPower(int x, int power)
+    {
+        if (power == 0) return 1;
+        if (power == 1) return x;
 
+        int n = 15;
+        while ((power <<= 1) >= 0) n--;
+
+        int tmp = x;
+        while (--n > 0)
+            tmp = tmp * tmp * 
+                 (((power <<= 1) < 0)? x : 1);
+        return tmp;
+    }        
     private void UpdateFaceColor()
     {
         if (_triangle != null && _selectedFacePreviousColors != null)
@@ -126,8 +145,8 @@ public class IcosphereMesh : MonoBehaviour
         _h = Height();
         _hDiv3 = _h / 3;
         _z = ZValue();
-        _sqrt3On4 = Mathf.Sqrt(3 / 4f);
-        _s = Mathf.Cos(Mathf.PI / 5);
+        _sqrt3On4 = Mathf.Sqrt(3f / 4f);
+        _s = Mathf.Cos(Mathf.PI / 5f);
         _a = new Vector3(-2 * _hDiv3, 0, _z);
         _b = new Vector3(_hDiv3, _lHalf, _z);
         _bb = new Vector3(_b.x, -_b.y, _b.z);
@@ -218,7 +237,8 @@ public class IcosphereMesh : MonoBehaviour
     Vector3 FindIntersectionPoint(Line l)
     {
         float lpMag = l.point.magnitude;
-        if (lpMag >= 1) throw new InvalidOperationException("Lp magnitude must be smaller than 1");
+        //if (lpMag >= 1) throw new InvalidOperationException("Lp magnitude must be smaller than 1");
+        if (lpMag > 1) return new Vector3(0,0,-100f);
         Vector3 val = l.normal * Mathf.Sqrt(1 - Mathf.Pow(lpMag, 2));
         Vector3 point = l.point + val;
         if (point.z < 0)
@@ -238,8 +258,7 @@ public class IcosphereMesh : MonoBehaviour
         Vector3 fxzlp = FrontView2D(l.point);
         Vector3 fxzlv = FrontView2D(l.normal);
         Vector3 fxzlvUnitV = fxzlv.normalized;
-
-        return fxzq + FrontViewRotation90Cw(fxzlvUnitV) * Vector3.Dot((2 * fxzlvUnitV), fxzlp - fxzq);
+        return fxzq + FrontViewRotation90Cw(fxzlvUnitV) * Vector3.Dot((2 * FrontViewRotation90Cw(fxzlvUnitV)), fxzlp - fxzq);
     }
     
     // fow
@@ -289,14 +308,16 @@ public class IcosphereMesh : MonoBehaviour
 
     Vector3 CutPointTwo3DMethod(Vector3 c0)
     {
-        return RotateCounterClockwise(c0);
+        c0 = RotateCounterClockwise(c0);
+        c0[1] *= -1;
+        return c0;
     }
     
     Vector3 CutPointTwo2DMethod(Vector3 c0)
     {
         // omit fy (GetUnitVectorComponent)
         // not working
-        return CircleScaleInward(FrontViewMirrorPointAlongLine(EllipseScaleOutward(c0), ConstructLine(Vector3.zero, _mow)));
+        return GetUnitVectorComponent(CircleScaleInward(FrontViewMirrorPointAlongLine(EllipseScaleOutward(c0), ConstructLine(Vector3.zero, _mow))));
     }
     
 
@@ -314,26 +335,6 @@ public class IcosphereMesh : MonoBehaviour
         return newPoints.ToArray();
     }
 
-    Plane[] CalculateSlicingPlanes(Vector3 cutPoint)
-    {
-        Vector3 n = new Vector3(_p.z - cutPoint.z, 0, cutPoint.x - _p.x).normalized;
-        Plane c = new Plane(n, Vector3.Dot(n, _p));
-        Plane d = new Plane(RotateClockwise(c.unitVector), c.distToOrigin);
-        Plane e = new Plane(RotateCounterClockwise(c.unitVector), c.distToOrigin);
-        return new Plane[] { c, d, e };
-    }
-
-    Vector3 CalculateGridPoints(Plane a, Plane b)
-    {
-        Vector3 l = Vector3.Cross(a.unitVector, b.unitVector).normalized;
-        Line f = new Line(Vector3.Cross(a.unitVector, l).normalized, a.unitVector * a.distToOrigin);
-        Line g = new Line(Vector3.Cross(b.unitVector, l).normalized, b.unitVector * b.distToOrigin);
-        Vector3 lp = g.point + g.normal * (Vector3.Dot(f.point - g.point, a.unitVector) / Vector3.Dot(a.unitVector, g.normal));
-
-        Line ll = new Line(l, lp);
-        Vector3 t = FindIntersectionPoint(ll);
-        return t;
-    }
 
     Vector3[] GetNewPoints(Vector3 side1, Vector3 side2, int num)
     {
@@ -355,6 +356,35 @@ public class IcosphereMesh : MonoBehaviour
         return points;
     }
 
+    Plane[] CalculateSlicingPlanes(Vector3 cutPoint)
+    {
+        Vector3 n = new Vector3(_p.z - cutPoint.z, 0, cutPoint.x - _p.x).normalized;
+        Plane c = new Plane(n, Vector3.Dot(n, _p));
+        Plane d = new Plane(RotateClockwise(c.unitVector), c.distToOrigin);
+        Plane e = new Plane(RotateCounterClockwise(c.unitVector), c.distToOrigin);
+        return new Plane[] { c, d, e };
+    }
+
+    void AddSlicingPlanes(Vector3 cutPoint, ref List<Plane> param_planes)
+    {
+        Vector3 n = new Vector3(_p.z - cutPoint.z, 0, cutPoint.x - _p.x).normalized;
+        Plane c = new Plane(n, Vector3.Dot(n, _p));
+        param_planes.Add(c);
+        param_planes.Add(new Plane(RotateClockwise(c.unitVector), c.distToOrigin));     // Clockwise + 1
+        param_planes.Add(new Plane(RotateCounterClockwise(c.unitVector), c.distToOrigin));   // anticlockwise + 2
+        return;
+    }
+    Vector3 CalculateGridPoints(Plane a, Plane b)
+    {
+        Vector3 l = Vector3.Cross(a.unitVector, b.unitVector).normalized;
+        Line f = new Line(Vector3.Cross(a.unitVector, l).normalized, a.unitVector * a.distToOrigin);
+        Line g = new Line(Vector3.Cross(b.unitVector, l).normalized, b.unitVector * b.distToOrigin);
+        Vector3 lp = g.point + g.normal * (Vector3.Dot(f.point - g.point, a.unitVector) / Vector3.Dot(a.unitVector, g.normal));
+
+        Line ll = new Line(l, lp);
+        Vector3 t = FindIntersectionPoint(ll);
+        return t;
+    }
     // a line L is defined by its normal vector v and the point p on the line where it is nearest to the origin.
     // A line can be constructed as: L = (L^v, Lp)
     struct Line
@@ -395,67 +425,124 @@ public class IcosphereMesh : MonoBehaviour
     }
     
     private List<Vector3> _displayPoints = new List<Vector3>();
+    private List<Vector3> geodesic_grid = new List<Vector3>();     // Result array
+    private List<Vector3> allcutPoints = new List<Vector3>();      // Array that stores all the generated cutpoints including one of the apex point
     [ShowInInspector]
     void DisplayPoints()
     {
         _displayPoints.Clear();
+        allcutPoints.Clear();
+        geodesic_grid.Clear();
         // 3 corners
-        _displayPoints.Add(_a);
-        _displayPoints.Add(_b);
-        _displayPoints.Add(_bb);
-        _displayPoints.Add(Vector3.forward);
-        
-        // seedPoint center rib
-        _displayPoints.Add(_m);
+        //_displayPoints.Add(_a);
+        //_displayPoints.Add(_b);
+        //_displayPoints.Add(_bb);
+        //_displayPoints.Add(Vector3.forward);
 
         // list to store new points, start with seedPoint
-        List<Vector3> cutPoints = new List<Vector3>();
-        cutPoints.Add(_m);
+        Queue<Vector3> cutPoints = new Queue<Vector3>();
+        List<Plane> planes = new List<Plane>();
+        cutPoints.Enqueue(_m);
+        allcutPoints.Add(_m);
+        allcutPoints.Add(_b);
         
         Vector3 cp;
-        int pos = 0;
-        for (int i = 0; i < (int) _generations; i++)
+        Vector3 t;
+        
+        
+        for (int i = 0; i < (int) _generations; i++)        // For every one cutpoint we generate two more 
         {
             int val = cutPoints.Count;
-            for (int j = pos; j < val; j++)
+            for (int j = 0; j < val; j++)
             {
-                cp = cutPoints[j];
-                pos++;
-                
-                foreach (var point in FindCutPoints(cp))
-                {
-                    cutPoints.Add(point);
-                    _displayPoints.Add(point);
-                }
+                cp = cutPoints.Peek();
+                Vector3 c0 = CutPointOne(cp);
+                cutPoints.Enqueue(c0);
+                allcutPoints.Add(c0);
+                Vector3 c1 = CutPointTwo3DMethod(c0);
+                cutPoints.Enqueue(c1);
+                allcutPoints.Add(c1);
+                cutPoints.Dequeue();
             }
         }
-
-        cutPoints.Sort((x, y) => (y.x.CompareTo(x.x)));
-
-        int num = cutPoints.Count - 1;
-        // generation 1
-        //int[] nums = new int[] { 1, 2, 0 };
-        // generation 2
-        //int[] nums = new int[] { 3, 5, 1, 4, 2, 6, 0 };
-        // generation 3
-        //int[] nums = new int[] { 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
-        int idx = 0;
-        foreach (var point in cutPoints)
+        allcutPoints.Sort(delegate(Vector3 a, Vector3 b)      // Sort the cut points by Y value
         {
-            _displayPoints.Add(RotateClockwise(point));
-            _displayPoints.Add(RotateCounterClockwise(point));
-            Vector3 opposite = new Vector3(point.x, -point.y, point.z);
-            //_displayPoints.Add(opposite);
-            
-            foreach (var newPoint in GetNewPoints(point, opposite, num--))
-            {
-                _displayPoints.Add(newPoint);
-            }
+            return b[1].CompareTo(a[1]);
+        });
+
+        int planecount = 0;
+        for(int i = 0; i < allcutPoints.Count; ++i)
+        {
+            AddSlicingPlanes(allcutPoints[i], ref planes);  // calculate all the planes and add them into the list for next step's use
+            planecount += 3;
         }
         
-        Debug.Log(_displayPoints.Count);
+        for(int i = 0; i < allcutPoints.Count; ++i)        
+        {
+            for(int j = 0; j < allcutPoints.Count; ++j)
+            {
+                if(i + j >= allcutPoints.Count+1) break;                  // pruning the process so that we don't get extra points
+                t = CalculateGridPoints(planes[i*3+2], planes[j*3]);      // Picking two relevant planes to calculate grid point
+                if(t[2] >= 0)
+                {
+                    geodesic_grid.Add(t);
+                    _displayPoints.Add(t);
+                }
+            }
+            if(i == 0)          
+            {
+                geodesic_grid.Add(_a);
+                _displayPoints.Add(_a);
+
+            }
+            if(i == allcutPoints.Count - 1)
+            {
+                _displayPoints.Add(_bb);
+                geodesic_grid.Add(_bb);
+            }
+        }
+        //double sval = Math.Sin(ConvertDegreesToRadians(41.811f));
+        //double cval = Math.Cos(ConvertDegreesToRadians(41.811f));
+        //double sval1 = Math.Sin(ConvertDegreesToRadians(60f));
+        //double cval1 = Math.Cos(ConvertDegreesToRadians(60f));
+        Vector3 eulerAngles = new Vector3(0f, 41.811f ,60f);                       // Rotate y 41.811 degree and z 60 degree
+        Quaternion rotation = Quaternion.Euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
+        Matrix4x4 m = Matrix4x4.Rotate(rotation);
+        for(int i = 0; i < geodesic_grid.Count; ++i)
+        {
+            //geodesic_grid[i] = m.MultiplyPoint3x4(geodesic_grid[i]);         // uncomment this to see the rotation
+            //geodesic_grid[i] = new Vector3( geodesic_grid[i].x* (float)cval1 -  (float)sval1* geodesic_grid[i].y,  geodesic_grid[i].x* (float)sval1 +  (float)cval1* geodesic_grid[i].y, geodesic_grid[i].z);
+            //geodesic_grid[i] = new Vector3( geodesic_grid[i][0]* (float)cval +  (float)sval* geodesic_grid[i][2], geodesic_grid[i].y, geodesic_grid[i][0]* -(float)sval +  (float)cval* geodesic_grid[i][2]);
+            //_displayPoints.Add(geodesic_grid[i]);                            // uncomment this to see the rotation
+        }
+    }
+    
+    int timer_count = 0;
+    [ShowInInspector]
+    void AnimatedDisplay()
+    {
+        SetTimer();
+        timer_count = 0;
+        _displayPoints.Clear();
     }
 
+    private void SetTimer()
+    {
+        aTimer = new System.Timers.Timer(200);
+        // Hook up the Elapsed event for the timer. 
+        aTimer.Elapsed += OnTimedEvent;
+        aTimer.AutoReset = true;
+        aTimer.Enabled = true;
+    }
+
+    private void OnTimedEvent(object source, ElapsedEventArgs e)
+    {
+        _displayPoints.Add(geodesic_grid[timer_count++]);
+        if(timer_count >= geodesic_grid.Count)
+        {
+            aTimer.Stop();
+        }
+    }
     private Vector3 _t;
     private void OnDrawGizmos()
     {
@@ -471,7 +558,7 @@ public class IcosphereMesh : MonoBehaviour
         float u = _lHalf;
         float v = Mathf.Sqrt(1 - _lHalfSq);
 
-       _vertices = new Vector3[]
+       _vertices = new Vector3[] 
         {
             new Vector3(0, -v, u),
             new Vector3(v, -u, 0),
