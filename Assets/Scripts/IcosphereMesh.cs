@@ -477,29 +477,30 @@ public class IcosphereMesh : MonoBehaviour
         // amount to shift will always be the same
         float horizontalShift = .910593f / (columnSize - 1);
         // adjust down for diminishing height
-        float heightAdjust = 0.5257311f / (columnSize - 1);
-        float height = 1.0514622f;
+        float height = 1.0514622f / 2f;
         // amount shifted
         int horizontalSpot = 0;
-        while (columnSize > 0)
+        int leftSideIndex = columnSize - 1;
+        float x = 0.303531f;
+        while (true)
         {
             float verticalShift = height / (columnSize - 1);
             if (columnSize == 1) verticalShift = 0f;
             float columnSpot = 0;
             for (int i = 0; i < columnSize; i++)
             {
-                float x = 0.303531f - horizontalShift * horizontalSpot;
-                float y = (height / 2f) - verticalShift * columnSpot;
-                if (x > 0) x += GetOffsetX(y) * (x / 0.303531f);
+                float y = height - (verticalShift * 2f) * columnSpot;
                 
-                Vector3 v = GetUnitVectorComponentZ(new Vector3(x, y, 0f));
+                Vector3 v = GetUnitVectorComponentZ(new Vector3(x > 0 ? x + GetOffsetX(y) * (x / 0.303531f) : x, y, 0f));
                 _newGridPoints.Add(v);
                 columnSpot++;
             }
 
             horizontalSpot++;
             columnSize--;
-            height -= heightAdjust * 2;
+            if (columnSize == 0) break;
+            height = RotateCounterClockwise(_newGridPoints[leftSideIndex - horizontalSpot]).y;
+            x = RotateCounterClockwise(_newGridPoints[leftSideIndex - horizontalSpot ]).x;
         }
 
         _vertices = _newGridPoints.ToArray();
