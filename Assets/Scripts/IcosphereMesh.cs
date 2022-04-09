@@ -79,14 +79,20 @@ public class IcosphereMesh : MonoBehaviour
 
     [ShowInInspector, FoldoutGroup("Mesh"), PropertyRange(1, 20), OnValueChanged("UpdateFaceColor")]
     private int _selectedFace = 1;
-    public static double ConvertDegreesToRadians (double degrees)
-    {
-        double radians = (Math.PI / 180) * degrees;
-        return (radians);
-    }
     //[ShowInInspector]
     private Color[] _selectedFacePreviousColors;
     //[ShowInInspector]
+
+    [ShowInInspector, ToggleLeft, OnValueChanged("DisplayPoints")] private bool _applyPerlinNoise;
+    [ShowInInspector, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise")]
+    private float _perlinXYScale;
+    [ShowInInspector, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise")]
+    private float _perlinOutputScale;
+
+    [ShowInInspector, ToggleLeft, OnValueChanged("UpdateColorsFromInspector")] private bool _lerpColors;
+    [ShowInInspector, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color1 = Color.blue;
+    [ShowInInspector, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color2 = Color.red;
+
     private int[] _triangle;
     private static System.Timers.Timer aTimer;
     public static int IntPower(int x, int power)
@@ -159,8 +165,303 @@ public class IcosphereMesh : MonoBehaviour
         _pow = EllipseScaleOutward(_p);
         IcoMesh();
         UpdateFaceColor();
+        calculateAxes();
     }
 
+    void calculateAxes()
+    {
+        _AllAxes.Clear();
+        _displayAxes.Clear();
+        Axes cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
+        float triangleRot1 = 60f;
+        float triangleRot2 = 41.811f;
+        float triangleRot3 = 30f;
+        Matrix4x4 m;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 1st rotation to top right ------------------------------------------------
+        Matrix4x4 mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref mtr1, ref cardinal);
+        Matrix4x4 mtr2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref mtr2, ref cardinal);
+        mtr2*= mtr1;
+        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref mtr1, ref cardinal);
+        mtr1*= mtr2;
+        m = mtr1;
+
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+
+        // 2nd rotation to top right ------------------------------------------------
+        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref mtr1, ref cardinal);
+        mtr1 *= m;
+        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref mtr2, ref cardinal);
+        mtr2*= mtr1;
+        m = mtr2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 3rd rotation to top right ------------------------------------------------
+        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref mtr1, ref cardinal);
+        mtr1 *= m;
+        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref mtr2, ref cardinal);
+        mtr2*= mtr1;
+        m = mtr2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 4th rotation to top right ------------------------------------------------
+        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref mtr1, ref cardinal);
+        mtr1 *= m;
+        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref mtr2, ref cardinal);
+        mtr2*= mtr1;
+        m = mtr2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 5th rotation to top right ------------------------------------------------
+        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref mtr1, ref cardinal);
+        mtr1 *= m;
+        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref mtr2, ref cardinal);
+        mtr2*= mtr1;
+        m = mtr2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+
+        
+        // 1st rotation to left ------------------------------------------------
+        cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
+        Matrix4x4 ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        Matrix4x4 ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 2nd rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= ml2;
+        m = ml1;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 3rd rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 4th rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 5th rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 6th rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= ml2;
+        m = ml1;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 7th rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 8th rotation to left ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+
+        // 1st rotation to bottom right ------------------------------------------------
+        cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.y);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        m = ml2;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 2nd rotation to bottom right ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= ml2;
+        m = ml1;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 3rd rotation to bottom right ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= ml2;
+        m = ml1;
+        Axes cardinal_temp = new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        );
+        Matrix4x4 mtemp = m;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // Side Step
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal_temp.y);
+        ApplyMat4toAxis(ref ml1, ref cardinal_temp);
+        ml1 *= mtemp;
+        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal_temp.z);
+        ApplyMat4toAxis(ref ml2, ref cardinal_temp);
+        ml2*= ml1;
+        mtemp = ml2;
+        _AllAxes.Add(cardinal_temp);
+        // 4th rotation to bottom right ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= ml2;
+        m = ml1;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+        // 5nd rotation to bottom right ------------------------------------------------
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= m;
+        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
+        ApplyMat4toAxis(ref ml2, ref cardinal);
+        ml2*= ml1;
+        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
+        ApplyMat4toAxis(ref ml1, ref cardinal);
+        ml1 *= ml2;
+        m = ml1;
+        _AllAxes.Add(new Axes(
+            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
+            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
+            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
+        ));
+
+        for(int i = 0; i < _AllAxes.Count; ++i)
+        {
+            _displayAxes.Add(_AllAxes[i].z);
+        }
+    }
     float Length()
     {
         // l = 4 / sqrt(10 + sqrt(20)) page4
@@ -478,11 +779,13 @@ public class IcosphereMesh : MonoBehaviour
     {
         public Vector3 vec;
         public int count;
+        public int index;
 
-        public Vpair(Vector3 a, int b)
+        public Vpair(Vector3 a, int b, int c)
         {
             this.vec = a;
             this.count = b;
+            this.index = c;
         }
     }
     class Axes
@@ -514,8 +817,10 @@ public class IcosphereMesh : MonoBehaviour
         a.z = l.MultiplyPoint3x4(a.z);
         return;
     }
-    private void rotateAction(int gd_cnt, ref int[] is_edge, ref Matrix4x4 m)
+    private void rotateAction(int gd_cnt, ref int[] is_edge, ref Matrix4x4 m, ref List<int> trilist)
     {
+        int start_pos = _geodesicGrid.Count;
+        int[] tritemp = new int[gd_cnt];
         for(int i = 0; i < gd_cnt; ++i)
         {
             Vector3 newP = m.MultiplyPoint3x4(geodesic_grid_base[i]);
@@ -524,10 +829,11 @@ public class IcosphereMesh : MonoBehaviour
                 bool found = false;
                 for(int j = 0; j < duplicated_points.Count; ++j)
                 {
-                    if(Vector3.Distance(newP, duplicated_points[j].vec) < 1e-4f) // == does NOT work
+                    if(Vector3.Distance(newP, duplicated_points[j].vec) < 3e-4f) // == does NOT work
                     {
                         found = true;
                         duplicated_points[j].count--;
+                        tritemp[i] = duplicated_points[j].index;
                         if(duplicated_points[j].count <= 0)
                         {
                             duplicated_points.RemoveAt(j);
@@ -535,36 +841,66 @@ public class IcosphereMesh : MonoBehaviour
                         break;
                     }
                 }
+                //if(i >= 2 && i <= _generations+4) _displayCubes.Add(newP); // DEBUG
 
                 if(!found)
                 {
-                    duplicated_points.Add(new Vpair(newP, is_edge[i]));
-                    geodesic_grid.Add(newP);
+                    tritemp[i] = _geodesicGrid.Count;
+                    duplicated_points.Add(new Vpair(newP, is_edge[i], _geodesicGrid.Count));
+                    _geodesicGrid.Add(newP);
                     _displayPoints.Add(newP);
                 }
             }
             else
             {
-                geodesic_grid.Add(newP);
+                //if(i >= 2 && i <= _generations+4) _displayCubes.Add(newP); // DEBUG
+                tritemp[i] = _geodesicGrid.Count;
+                _geodesicGrid.Add(newP);
                 _displayPoints.Add(newP);
             }
         }
+        int columnSize = (int)Mathf.Pow(2, _generations + 1) + 1;
+        int offset = 0;
+        while (columnSize > 1)
+        {
+            for (int i = 0; i < columnSize - 1; i++)
+            {
+                int j = i + 1;
+                trilist.Add(tritemp[i + offset]);
+                trilist.Add(tritemp[j + offset]);
+                trilist.Add(tritemp[i + offset + columnSize]);
+
+                if (offset != 0)
+                {
+                    trilist.Add(tritemp[j + offset]);
+                    trilist.Add(tritemp[i + offset]);
+                    trilist.Add(tritemp[i + offset - columnSize]);
+                }
+            }
+            offset += columnSize;
+            columnSize--;
+        }
+        return;
     }
-    private List<Vector3> geodesic_grid_base = new List<Vector3>();
-    private List<Vpair> duplicated_points = new List<Vpair>();
+    
     private List<Vector3> _displayPoints = new List<Vector3>();
     private List<Vector3> _displayAxes = new List<Vector3>();
-    private List<Vector3> geodesic_grid = new List<Vector3>();     // Result array
+    private List<Vector3> _displayCubes = new List<Vector3>();
+
+    private List<Axes> _AllAxes = new List<Axes>();
+    private List<Vector3> geodesic_grid_base = new List<Vector3>();
+    private List<Vpair> duplicated_points = new List<Vpair>();
+    private List<Vector3> _geodesicGrid = new List<Vector3>();     // Result array
     private List<Vector3> allcutPoints = new List<Vector3>();      // Array that stores all the generated cutpoints including one of the apex point
     [ShowInInspector]
     void DisplayPoints()
     {
         _displayPoints.Clear();
         allcutPoints.Clear();
-        geodesic_grid.Clear();
+        _geodesicGrid.Clear();
         duplicated_points.Clear();
         geodesic_grid_base.Clear();
-        _displayAxes.Clear();
+        _displayCubes.Clear();
         // 3 corners
         //_displayPoints.Add(_a);
         //_displayPoints.Add(_b);
@@ -617,24 +953,24 @@ public class IcosphereMesh : MonoBehaviour
                 t = CalculateGridPoints(planes[i*3+2], planes[j*3]);      // Picking two relevant planes to calculate grid point
                 if(t[2] >= 0)
                 {
-                    geodesic_grid.Add(t);
+                    _geodesicGrid.Add(t);
                     _displayPoints.Add(t);
                 }
             }
             if(i == 0)          
             {
-                geodesic_grid.Add(_a);
+                _geodesicGrid.Add(_a);
                 _displayPoints.Add(_a);
 
             }
             if(i == allcutPoints.Count - 1)
             {
                 _displayPoints.Add(_bb);
-                geodesic_grid.Add(_bb);
+                _geodesicGrid.Add(_bb);
             }
         }
         // ----------------------------------------------------------
-        geodesic_grid_base = geodesic_grid;  // Base Triangle that has "base" coordinates
+        geodesic_grid_base = _geodesicGrid;  // Base Triangle that has "base" coordinates
         
         int[] is_edge = new int[geodesic_grid_base.Count];
         int gd_cnt = geodesic_grid_base.Count;
@@ -647,12 +983,12 @@ public class IcosphereMesh : MonoBehaviour
         {
             if(dup_avoid == 0 || dup_avoid == side_max_cnt -1 || dup_avoid == gd_cnt - 1)
             {
-                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 4));
+                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 4, dup_avoid));
                 is_edge[dup_avoid] = 4;
             }
             else
             {
-                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 1));
+                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 1, dup_avoid));
                 is_edge[dup_avoid] = 1;
             }
 
@@ -660,12 +996,12 @@ public class IcosphereMesh : MonoBehaviour
 
             if(dup_avoid == 0 || dup_avoid == side_max_cnt -1 || dup_avoid == gd_cnt - 1)
             {
-                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 4));
+                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 4, dup_avoid));
                 is_edge[dup_avoid] = 4;
             }
             else
             {
-                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 1));
+                duplicated_points.Add(new Vpair(geodesic_grid_base[dup_avoid], 1, dup_avoid));
                 is_edge[dup_avoid] = 1;
             }
 
@@ -682,287 +1018,117 @@ public class IcosphereMesh : MonoBehaviour
         print("Before rotation Duplicated edges has a total of: " + duplicated_points.Count + " Grid Points");
         // ---------------------------------------------------------
         print("Each side has: " + side_max_cnt + " Grid Points, base grid has a total of: " + geodesic_grid_base.Count + " Grid Points");
-        
-        Axes cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
-        float triangleRot1 = 60f;
-        float triangleRot2 = 41.811f;
-        float triangleRot3 = 30f;
-        Matrix4x4 m;
-        _displayAxes.Add(cardinal.z);
-        // 1st rotation to top right ------------------------------------------------
-        Matrix4x4 mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref mtr1, ref cardinal);
-        Matrix4x4 mtr2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref mtr2, ref cardinal);
-        mtr2*= mtr1;
-        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref mtr1, ref cardinal);
-        mtr1*= mtr2;
-        m = mtr1;
-        rotateAction(gd_cnt,ref is_edge , ref m);
 
-        _displayAxes.Add(cardinal.z);
-        
+        List<int> triangleList = new List<int>();
 
-        // 2nd rotation to top right ------------------------------------------------
-        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref mtr1, ref cardinal);
-        mtr1 *= m;
-        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref mtr2, ref cardinal);
-        mtr2*= mtr1;
-        m = mtr2;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 3rd rotation to top right ------------------------------------------------
-        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref mtr1, ref cardinal);
-        mtr1 *= m;
-        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref mtr2, ref cardinal);
-        mtr2*= mtr1;
-        m = mtr2;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 4th rotation to top right ------------------------------------------------
-        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref mtr1, ref cardinal);
-        mtr1 *= m;
-        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref mtr2, ref cardinal);
-        mtr2*= mtr1;
-        m = mtr2;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 5th rotation to top right ------------------------------------------------
-        mtr1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref mtr1, ref cardinal);
-        mtr1 *= m;
-        mtr2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref mtr2, ref cardinal);
-        mtr2*= mtr1;
-        m = mtr2;
-        _displayAxes.Add(cardinal.z);
-        //DrawAxes(cardinal);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-
-        
-        // 1st rotation to left ------------------------------------------------
-        cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
-        Matrix4x4 ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        Matrix4x4 ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 2nd rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= ml2;
-        m = ml1;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 3rd rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        //DrawAxes(cardinal);
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 4th rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        
-        //DrawAxes(cardinal);
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 5th rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        //DrawAxes(cardinal);
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 6th rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= ml2;
-        m = ml1;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 7th rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 8th rotation to left ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-
-        // 1st rotation to bottom right ------------------------------------------------
-        cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.y);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        m = ml2;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 2nd rotation to bottom right ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= ml2;
-        m = ml1;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 3rd rotation to bottom right ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= ml2;
-        m = ml1;
-        Axes cardinal_temp = new Axes(
-            new Vector3(cardinal.x.x, cardinal.x.y, cardinal.x.z), 
-            new Vector3(cardinal.y.x,cardinal.y.y,cardinal.y.z), 
-            new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
-        );
-        Matrix4x4 mtemp = m;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // Side Step
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot2, cardinal_temp.y);
-        ApplyMat4toAxis(ref ml1, ref cardinal_temp);
-        ml1 *= mtemp;
-        ml2 = fromRotation(Mathf.Deg2Rad * triangleRot1, cardinal_temp.z);
-        ApplyMat4toAxis(ref ml2, ref cardinal_temp);
-        ml2*= ml1;
-        mtemp = ml2;
-        _displayAxes.Add(cardinal_temp.z);
-        rotateAction(gd_cnt,ref is_edge , ref mtemp);
-        // 4th rotation to bottom right ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= ml2;
-        m = ml1;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-        // 5nd rotation to bottom right ------------------------------------------------
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= m;
-        ml2 = fromRotation(Mathf.Deg2Rad * -triangleRot2, cardinal.x);
-        ApplyMat4toAxis(ref ml2, ref cardinal);
-        ml2*= ml1;
-        ml1 = fromRotation(Mathf.Deg2Rad * triangleRot3, cardinal.z);
-        ApplyMat4toAxis(ref ml1, ref cardinal);
-        ml1 *= ml2;
-        m = ml1;
-        _displayAxes.Add(cardinal.z);
-        rotateAction(gd_cnt,ref is_edge , ref m);
-
-
-
-
-
-        
-        print("Rotated grid has a total of: " + geodesic_grid.Count + " Grid Points");
-        print("After rotation Duplicated edges has a total of: " + duplicated_points.Count + " Grid Points");
-    
-    }
-    
-    int timer_count = 0;
-    [ShowInInspector]
-    void AnimatedDisplay()
-    {
-        SetTimer();
-        timer_count = 0;
-        _displayPoints.Clear();
-    }
-
-    private void SetTimer()
-    {
-        aTimer = new System.Timers.Timer(200);
-        // Hook up the Elapsed event for the timer. 
-        aTimer.Elapsed += OnTimedEvent;
-        aTimer.AutoReset = true;
-        aTimer.Enabled = true;
-    }
-
-    private void OnTimedEvent(object source, ElapsedEventArgs e)
-    {
-        _displayPoints.Add(geodesic_grid[timer_count++]);
-        if(timer_count >= geodesic_grid.Count)
+        int columnSize = (int)Mathf.Pow(2, _generations + 1) + 1;
+        int offset = 0;
+        while (columnSize > 1)
         {
-            aTimer.Stop();
+            for (int i = 0; i < columnSize - 1; i++)
+            {
+                int j = i + 1;
+                triangleList.Add(i + offset);
+                triangleList.Add(j + offset);
+                triangleList.Add(i + offset + columnSize);
+
+                if (offset != 0)
+                {
+                    triangleList.Add(j + offset);
+                    triangleList.Add(i + offset);
+                    triangleList.Add(i + offset - columnSize);
+                }
+            }
+
+            offset += columnSize;
+            columnSize--;
+        }
+
+        for(int i = 1; i < _AllAxes.Count; ++i)
+        {
+            Axes cardinal = new Axes(new Vector3(1,0,0), new Vector3(0,1,0), new Vector3(0,0,1));
+            Vector3 reference_axis = Vector3.Cross(cardinal.z, _AllAxes[i].z).normalized;
+            
+            float rotangle = Vector3.Angle(_AllAxes[i].z, cardinal.z);
+            Matrix4x4 m1 = fromRotation(Mathf.Deg2Rad * rotangle, reference_axis);
+            ApplyMat4toAxis(ref m1, ref cardinal);
+            
+            rotangle = Vector3.Angle(_AllAxes[i].x, cardinal.x);
+            Matrix4x4 m2 = fromRotation(Mathf.Deg2Rad * rotangle, cardinal.z);
+            ApplyMat4toAxis(ref m2, ref cardinal);
+            m2*= m1;
+            rotateAction(gd_cnt, ref is_edge , ref m2, ref triangleList);
+        }
+        
+        
+        print("Rotated grid has a total of: " + _geodesicGrid.Count + " Grid Points");
+        print("After rotation Duplicated edges has a total of: " + duplicated_points.Count + " Grid Points");
+        _vertices = _geodesicGrid.ToArray();
+        UpdateVerticesPerlin();
+        UpdateTriangles(triangleList);
+        UpdateColors();
+        UpdateMesh();
+    }
+    
+    [ShowInInspector]
+    private void UpdateMesh()
+    {
+        _mesh.Clear();
+        _mesh.vertices = _vertices;
+        _mesh.triangles = _triangles;
+        _mesh.colors = _vertexColors;
+    }
+
+    private void UpdateTriangles(List<int> triangleList)
+    {
+        _triangles = triangleList.ToArray();
+    }
+
+
+    private void UpdateVerticesPerlin()
+    {
+        if (_applyPerlinNoise)
+        {
+            for (int i = 0; i < _vertices.Length; i++)
+            {
+                float perlin = Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale;
+                Vector3 v = _vertices[i].normalized;
+                _vertices[i] = new Vector3(_vertices[i].x + v.x* perlin, _vertices[i].y + v.y* perlin, _vertices[i].z + + v.z* perlin );
+            }
+        }
+    }
+
+    private void UpdateColors()
+    {
+        _vertexColors = new Color[_vertices.Length];
+        for (int i = 0; i < _vertices.Length; i++)
+        {
+            if (_lerpColors)
+            {
+                _vertexColors[i] = Color.Lerp(_color1, _color2, (float)i / _vertexColors.Length);
+            }
+            else
+            {
+                _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
+                    UnityEngine.Random.Range(0, 255) / 255f);
+            }
         }
     }
     private Vector3 _t;
     private void OnDrawGizmos()
     {
         _t = transform.localScale;
+        Gizmos.color = Color.red;
         foreach (var point in _displayPoints)
         {
             //Gizmos.DrawSphere(point, .005f);
         }
+        Gizmos.color = Color.black;
+        foreach (var point in _displayCubes)
+        {
+            Gizmos.DrawCube(point, new Vector3(0.01f, 0.01f, 0.01f));
+        }
+        /*
         int clr_cnt = 0;
         foreach (var point in _displayAxes)
         {
@@ -972,7 +1138,7 @@ public class IcosphereMesh : MonoBehaviour
             }
             else if( clr_cnt < 8)
             {
-                Gizmos.color = Color.magenta;
+                Gizmos.color = Color.gray;
             }
             else if( clr_cnt < 12)
             {
@@ -989,6 +1155,7 @@ public class IcosphereMesh : MonoBehaviour
             Gizmos.DrawLine(Vector3.zero, point);
             ++clr_cnt;
         }
+        */
     }
 
     void IcoMesh()
@@ -1066,15 +1233,6 @@ public class IcosphereMesh : MonoBehaviour
             _vertexColors[i] = Color.Lerp(Color.red, Color.blue, (float)(i + 1) / _vertices.Length);
         }
 
-        _mesh.colors = _vertexColors;
-    }
-
-    [ShowInInspector]
-    private void UpdateMesh()
-    {
-        _mesh.Clear();
-        _mesh.vertices = _vertices;
-        _mesh.triangles = _triangles;
         _mesh.colors = _vertexColors;
     }
 }
