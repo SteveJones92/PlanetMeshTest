@@ -1007,14 +1007,31 @@ public class IcosphereMesh : MonoBehaviour
         _mesh.triangles = _triangles;
         _mesh.colors = _vertexColors;
     }
-
+    public static float PerlinNoise3D(float x, float y, float z)
+    {
+        x +=11;
+        y +=13;
+        z +=15;
+        float xy = _perlin3DFixed(x, y);
+        float xz = _perlin3DFixed(x, z);
+        float yz = _perlin3DFixed(y, z);
+        float yx = _perlin3DFixed(y, x);
+        float zx = _perlin3DFixed(z, x);
+        float zy = _perlin3DFixed(z, y);
+        return xy * xz * yz * yx * zx * zy;
+    }
+    static float _perlin3DFixed(float a, float b)
+    {
+        return Mathf.Sin(Mathf.PI * Mathf.PerlinNoise(a, b));
+    }
     private void UpdateVerticesPerlin()
     {
         if (_applyPerlinNoise)
         {
             for (int i = 0; i < _vertices.Length; i++)
             {
-                float perlin = Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale;
+                //float perlin = Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale;
+                float perlin = PerlinNoise3D(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale, _vertices[i].z * _perlinXYScale) / _perlinOutputScale;
                 Vector3 v = _vertices[i].normalized;
                 _vertices[i] = new Vector3(_vertices[i].x + v.x* perlin, _vertices[i].y + v.y* perlin, _vertices[i].z + + v.z* perlin );
             }
@@ -1026,14 +1043,17 @@ public class IcosphereMesh : MonoBehaviour
         _triangles = triangleList.ToArray();
     }
 
+    [ShowInInspector]
     private void UpdateColors()
     {
+        print((_vertices[4].magnitude - (float)1)*(float)150);
+        print((_vertices[6].magnitude - (float)1)*(float)150);
         _vertexColors = new Color[_vertices.Length];
         for (int i = 0; i < _vertices.Length; i++)
         {
             if (_lerpColors)
             {
-                _vertexColors[i] = Color.Lerp(_color1, _color2, (float)i / _vertexColors.Length);
+                _vertexColors[i] = Color.Lerp(_color1, _color2, (_vertices[i].magnitude - (float)1)*100f );
             }
             else
             {
