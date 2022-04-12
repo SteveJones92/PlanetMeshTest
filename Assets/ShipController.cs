@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShipControl : MonoBehaviour
+public class ShipController : MonoBehaviour
 {
 
     public float forwardSpeed = 25f, strafeSpeed = 7.5f, hoverSpeed = 5f;
