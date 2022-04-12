@@ -37,7 +37,7 @@ public class ShipControl : MonoBehaviour
 
         rollInput = Mathf.lerp(rollInput, rollInput.GetAxisRaw("Roll"), rollAcceleration * Time.deltaTime);
 
-        transform.Rotate(-mouseDistance.y * lookRateSpeed * Time.deltaTime, mouseDistance.x * lookRateSpeed * Time.deltaTime, rollInput * Time.d, Space.Self);
+        transform.Rotate(-mouseDistance.y * lookRateSpeed * Time.deltaTime, mouseDistance.x * lookRateSpeed * Time.deltaTime, rollInput * Time.deltaTime, Space.Self);
 
         activeForwardSpeed = Mathf.lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
         activeStrafeSpeed = Mathf.lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
