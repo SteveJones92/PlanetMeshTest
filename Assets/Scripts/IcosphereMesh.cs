@@ -78,6 +78,8 @@ public class IcosphereMesh : MonoBehaviour
     private int[] _triangles;
     [ShowInInspector, FoldoutGroup("Mesh")]
     private Vector3[] _vertices;
+    [ShowInInspector, FoldoutGroup("Mesh")]
+    private Vector2[] _uvs;
     [ShowInInspector, FoldoutGroup("Mesh"), ColorPalette("Tropical")]
     private Color[] _vertexColors;
     
@@ -105,7 +107,7 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, ToggleLeft, OnValueChanged("UpdateColorsFromInspector")] private bool _lerpColors;
     [ShowInInspector, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color1 = Color.blue;
     [ShowInInspector, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color2 = Color.red;
-    
+
     [UsedImplicitly]
     private void UpdateColorsFromInspector()
     {
@@ -987,6 +989,15 @@ public class IcosphereMesh : MonoBehaviour
         print("Rotated grid has a total of: " + _geodesicGrid.Count + " Grid Points");
         print("After rotation Duplicated edges has a total of: " + duplicated_points.Count + " Grid Points");
         _vertices = _geodesicGrid.ToArray();
+        Vector2[] uvs = new Vector2[_geodesicGrid.Count];
+        for(int i = 0; i < uvs.Length; ++i)
+        {
+            uvs[i] = new Vector2(
+              0.5f + Mathf.Atan2(_geodesicGrid[i].x, _geodesicGrid[i].z)/ (2*Mathf.PI)
+            , 0.5f + Mathf.Asin(_geodesicGrid[i].y)/(Mathf.PI)
+            );
+        }
+        _uvs = uvs;
         UpdateVerticesPerlin();
         UpdateTriangles(triangleList);
         UpdateColors();
@@ -1006,12 +1017,14 @@ public class IcosphereMesh : MonoBehaviour
         _mesh.vertices = _vertices;
         _mesh.triangles = _triangles;
         _mesh.colors = _vertexColors;
+        _mesh.uv = _uvs;
+        _mesh.RecalculateNormals();
     }
     public static float PerlinNoise3D(float x, float y, float z)
     {
-        x +=11;
-        y +=13;
-        z +=15;
+        x +=1000;
+        y -=100;
+        z +=10;
         float xy = _perlin3DFixed(x, y);
         float xz = _perlin3DFixed(x, z);
         float yz = _perlin3DFixed(y, z);
@@ -1046,8 +1059,6 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector]
     private void UpdateColors()
     {
-        print((_vertices[4].magnitude - (float)1)*(float)150);
-        print((_vertices[6].magnitude - (float)1)*(float)150);
         _vertexColors = new Color[_vertices.Length];
         for (int i = 0; i < _vertices.Length; i++)
         {
