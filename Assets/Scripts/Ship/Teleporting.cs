@@ -9,7 +9,7 @@ public class Teleporting : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        thePlayer.transform.position = teleportTarget.transform.position;
+        thePlayer.transform.position = teleportTarget.transform.position + thePlayer.transform.forward * 100;
     }
 
 }

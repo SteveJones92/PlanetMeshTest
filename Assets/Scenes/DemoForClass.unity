@@ -389,6 +389,8 @@ GameObject:
   - component: {fileID: 1041617567}
   - component: {fileID: 1041617569}
   - component: {fileID: 1041617568}
+  - component: {fileID: 1041617570}
+  - component: {fileID: 1041617571}
   m_Layer: 0
   m_Name: Portal2
   m_TagString: Untagged
@@ -462,6 +464,33 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1041617566}
   m_Mesh: {fileID: 9099364022323413523, guid: 8af67b9a35f9e4446acb08e01290e38e, type: 3}
+--- !u!114 &1041617570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041617566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0c6ea4dcdb774e479e609519a2e0bf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportTarget: {fileID: 397787111309839752}
+  thePlayer: {fileID: 4773141412765397218}
+--- !u!65 &1041617571
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041617566}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.020777296, y: 0.034706544, z: 0.0024589188}
+  m_Center: {x: -0.00004473019, y: 0.0078033013, z: -0.0023276731}
 --- !u!1 &1109097439
 GameObject:
   m_ObjectHideFlags: 0
@@ -1290,6 +1319,8 @@ GameObject:
   - component: {fileID: 397787111309839752}
   - component: {fileID: 3614951035775549997}
   - component: {fileID: 1571217069117404903}
+  - component: {fileID: 1067047351680128819}
+  - component: {fileID: 1067047351680128820}
   m_Layer: 0
   m_Name: Portal1
   m_TagString: Untagged
@@ -1297,6 +1328,33 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &1067047351680128819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1067047351680128818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0c6ea4dcdb774e479e609519a2e0bf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportTarget: {fileID: 1041617567}
+  thePlayer: {fileID: 4773141412765397218}
+--- !u!65 &1067047351680128820
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1067047351680128818}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.021012785, y: 0.03552858, z: 0.003462544}
+  m_Center: {x: -0.0007824478, y: 0.007764159, z: -0.002585647}
 --- !u!23 &1200456738747403245
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1436,6 +1494,8 @@ GameObject:
   - component: {fileID: 6430408694633713975}
   - component: {fileID: 4773141412765397219}
   - component: {fileID: 4773141412765397220}
+  - component: {fileID: 4773141412765397222}
+  - component: {fileID: 4773141412765397221}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Untagged
@@ -1491,6 +1551,35 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!65 &4773141412765397221
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4773141412765397218}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.06729456, y: 0.048563622, z: 0.01464133}
+  m_Center: {x: 0.0003228842, y: 0.012481509, z: 0.0026924685}
+--- !u!54 &4773141412765397222
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4773141412765397218}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!4 &5128039360444207328
 Transform:
   m_ObjectHideFlags: 0
@@ -1513,7 +1602,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4773141412765397218}
   m_LocalRotation: {x: -0.5214021, y: -0.4776399, z: -0.47764003, w: 0.52140194}
-  m_LocalPosition: {x: -0.12223659, y: 502.86, z: -0.111976966}
+  m_LocalPosition: {x: 19.42, y: 502.86, z: 2.97}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children:
   - {fileID: 1109097442}

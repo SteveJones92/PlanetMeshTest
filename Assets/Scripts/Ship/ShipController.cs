@@ -7,7 +7,7 @@ public class ShipController : MonoBehaviour
 {
 
     public float forwardSpeed = 25f, strafeSpeed = 7.5f, hoverSpeed = 5f;
-    private float activeForwardSpeed, activeStrafeSpeed, activeHoverSpeed;
+    //private float activeForwardSpeed, activeStrafeSpeed, activeHoverSpeed;
     private float forwardAcceleration = 2.5f, strafeAcceleration = 2f, hoverAcceleration = 2f;
 
     public float lookRateSpeed = 90f;
@@ -29,36 +29,27 @@ public class ShipController : MonoBehaviour
     }
 
     private void OnMove(InputValue input) {
-        _move = input.Get<Vector2>();
-        Debug.Log(_move);
+        _move = -input.Get<Vector2>();
+        //Debug.Log(_move);
     }
 
     private void OnForward(InputValue input) {
         _forward = input.Get<float>();
-        Debug.Log(_forward);
+        //Debug.Log(_forward);
     }
 
     // Update is called once per frame
     void Update()
     {
-        //lookInput.x = Input.mousePosition.x;
-        //lookInput.y = Input.mousePosition.y;
-
-        //mouseDistance.x = (lookInput.x - screenCenter.x) / screenCenter.y;
-        //mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
-
-        //mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
-        /*
         rollInput = Mathf.Lerp(rollInput, _move.x, rollAcceleration * Time.deltaTime);
 
         transform.Rotate(-_move.y * lookRateSpeed * Time.deltaTime, _move.x * lookRateSpeed * Time.deltaTime, rollInput * Time.deltaTime, Space.Self);
 
-        activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
-        activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
-        activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, Input.GetAxisRaw("Hover") * hoverSpeed, hoverAcceleration * Time.deltaTime);
+        //activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
+        //activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
+        //activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, Input.GetAxisRaw("Hover") * hoverSpeed, hoverAcceleration * Time.deltaTime);
 
-        transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
-        transform.position += (transform.right * activeStrafeSpeed * Time.deltaTime) + (transform.up * activeHoverSpeed * Time.deltaTime);
-        */
+        transform.position += transform.up * forwardSpeed * _forward * Time.deltaTime;
+        //transform.position += (transform.right * activeStrafeSpeed * Time.deltaTime) + (transform.up * activeHoverSpeed * Time.deltaTime);
     }
 }
