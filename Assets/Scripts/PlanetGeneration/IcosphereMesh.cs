@@ -83,7 +83,7 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, FoldoutGroup("Mesh"), ColorPalette("Tropical")]
     private Color[] _vertexColors;
     
-    [ShowInInspector, OnValueChanged("DisplayPoints"), CustomValueDrawer("MinMaxGenerations")]
+    [SerializeField, OnValueChanged("DisplayPoints"), CustomValueDrawer("MinMaxGenerations")]
     private int _generations;
     
     [UsedImplicitly]
@@ -92,10 +92,10 @@ public class IcosphereMesh : MonoBehaviour
         return EditorGUILayout.IntSlider(label, value, 0, 8);
     }
 
-    [ShowInInspector, ToggleLeft, OnValueChanged("DisplayPoints")] private bool _applyPerlinNoise;
-    [ShowInInspector, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise")]
+    [SerializeField, ToggleLeft, OnValueChanged("DisplayPoints")] private bool _applyPerlinNoise;
+    [SerializeField, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise"), DelayedProperty]
     private float _perlinXYScale;
-    [ShowInInspector, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise")]
+    [SerializeField, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise"), DelayedProperty]
     private float _perlinOutputScale;
 
     // Grid display toggles
@@ -104,9 +104,9 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, HideIf("@!_displayPointsGizmos"), MinValue(0.00001f)]
     private float _pointRadius = 0.005f;
     
-    [ShowInInspector, ToggleLeft, OnValueChanged("UpdateColorsFromInspector")] private bool _lerpColors;
-    [ShowInInspector, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color1 = Color.blue;
-    [ShowInInspector, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color2 = Color.red;
+    [SerializeField, ToggleLeft, OnValueChanged("UpdateColorsFromInspector")] private bool _lerpColors;
+    [SerializeField, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color1 = Color.blue;
+    [SerializeField, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color2 = Color.red;
 
     [UsedImplicitly]
     private void UpdateColorsFromInspector()
