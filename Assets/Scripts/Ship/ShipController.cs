@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ShipController : MonoBehaviour
 {
@@ -15,6 +16,9 @@ public class ShipController : MonoBehaviour
     private float rollInput;
     public float rollSpeed = 90f, rollAcceleration = 3.5f;
 
+    private Vector2 _move;
+    private float _forward;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,20 +28,30 @@ public class ShipController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
     }
 
+    private void OnMove(InputValue input) {
+        _move = input.Get<Vector2>();
+        Debug.Log(_move);
+    }
+
+    private void OnForward(InputValue input) {
+        _forward = input.Get<float>();
+        Debug.Log(_forward);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        lookInput.x = Input.mousePosition.x;
-        lookInput.y = Input.mousePosition.y;
+        //lookInput.x = Input.mousePosition.x;
+        //lookInput.y = Input.mousePosition.y;
 
-        mouseDistance.x = (lookInput.x - screenCenter.x) / screenCenter.y;
-        mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
+        //mouseDistance.x = (lookInput.x - screenCenter.x) / screenCenter.y;
+        //mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
 
-        mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
+        //mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
+        /*
+        rollInput = Mathf.Lerp(rollInput, _move.x, rollAcceleration * Time.deltaTime);
 
-        rollInput = Mathf.Lerp(rollInput, Input.GetAxisRaw("Roll"), rollAcceleration * Time.deltaTime);
-
-        transform.Rotate(-mouseDistance.y * lookRateSpeed * Time.deltaTime, mouseDistance.x * lookRateSpeed * Time.deltaTime, rollInput * Time.deltaTime, Space.Self);
+        transform.Rotate(-_move.y * lookRateSpeed * Time.deltaTime, _move.x * lookRateSpeed * Time.deltaTime, rollInput * Time.deltaTime, Space.Self);
 
         activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
         activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
@@ -45,6 +59,6 @@ public class ShipController : MonoBehaviour
 
         transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
         transform.position += (transform.right * activeStrafeSpeed * Time.deltaTime) + (transform.up * activeHoverSpeed * Time.deltaTime);
-
+        */
     }
 }
