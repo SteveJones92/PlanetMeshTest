@@ -18,6 +18,7 @@ public class ShipController : MonoBehaviour
 
     private Vector2 _move;
     private float _forward;
+    private float _turn;
 
     // Start is called before the first frame update
     void Start()
@@ -38,12 +39,18 @@ public class ShipController : MonoBehaviour
         //Debug.Log(_forward);
     }
 
+    private void OnTurn(InputValue input)
+    {
+        _turn = input.Get<Vector2>().x;
+    }
+
     // Update is called once per frame
     void Update()
     {
         rollInput = Mathf.Lerp(rollInput, _move.x, rollAcceleration * Time.deltaTime);
 
         transform.Rotate(_move.y * lookRateSpeed * Time.deltaTime, _move.x * lookRateSpeed * Time.deltaTime, rollInput * Time.deltaTime, Space.Self);
+        transform.RotateAround(transform.position, Vector3.up, _turn * lookRateSpeed * Time.deltaTime);
 
         //activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
         //activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
