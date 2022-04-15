@@ -89,7 +89,7 @@ public class IcosphereMesh : MonoBehaviour
     [UsedImplicitly]
     private static int MinMaxGenerations(int value, GUIContent label)
     {
-        return EditorGUILayout.IntSlider(label, value, 0, 8);
+        return EditorGUILayout.IntSlider(label, value, 0, 10);
     }
 
     [SerializeField, ToggleLeft, OnValueChanged("DisplayPoints")] private bool _applyPerlinNoise;
@@ -127,10 +127,15 @@ public class IcosphereMesh : MonoBehaviour
     // Start, OnDrawGizmos
     #region Unity Functions
     
-    [Title("Functions")]
+    [Title("Functions")] 
     [ShowInInspector]
     private void Start()
-    {
+    {   // Load Map
+        if (UnityEngine.Windows.File.Exists("Assets/Resources/earth_heightmap.jpg"))
+        {
+            heightmap = (Texture2D)UnityEngine.Resources.Load("earth_heightmap");
+            if (heightmap == null) print("Loadsuccess" + heightmap.height + " " +  heightmap.width);
+        }
         if (!_constantsLoaded)
         {
             _l = 4 / Mathf.Sqrt(10 + Mathf.Sqrt(20)); // l = 4 / sqrt(10 + sqrt(20)) page4
@@ -988,7 +993,9 @@ public class IcosphereMesh : MonoBehaviour
         
         print("Rotated grid has a total of: " + _geodesicGrid.Count + " Grid Points");
         print("After rotation Duplicated edges has a total of: " + duplicated_points.Count + " Grid Points");
+
         _vertices = _geodesicGrid.ToArray();
+        
         Vector2[] uvs = new Vector2[_geodesicGrid.Count];
         for(int i = 0; i < uvs.Length; ++i)
         {
@@ -997,7 +1004,16 @@ public class IcosphereMesh : MonoBehaviour
             , 0.5f + Mathf.Asin(_geodesicGrid[i].y)/(Mathf.PI)
             );
         }
-        _uvs = uvs;
+        _uvs = uvs;  // UV calculations
+
+        for (int i = 0; i < _vertices.Length; i++)  //Applying heightmap to the sphere using uv coords
+        {
+            Color height_clr = heightmap.GetPixel((int)((uvs[i].x) * heightmap.width), (int)((1 - uvs[i].y) * heightmap.height));
+            float he = height_clr.r * 0.025f;
+            Vector3 v = _vertices[i].normalized;
+            _vertices[i] = new Vector3(_vertices[i].x + v.x* he, _vertices[i].y + v.y* he, _vertices[i].z + + v.z* he );
+        }
+
         UpdateVerticesPerlin();
         UpdateTriangles(triangleList);
         UpdateColors();
@@ -1006,7 +1022,7 @@ public class IcosphereMesh : MonoBehaviour
     }
 
     #endregion
-
+    private Texture2D heightmap;
     // update the mesh component (triangles, vertices, color
     #region UpdatingMesh
 
