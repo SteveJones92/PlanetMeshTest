@@ -31,5 +31,4 @@ public static class TextureGenerator
 
 		return TextureFromColourMap(colourMap, width, height);
 	}
-
 }
