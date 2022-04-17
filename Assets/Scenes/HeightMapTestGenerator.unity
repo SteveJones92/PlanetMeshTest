@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   planePrefab: {fileID: 4675761342568378019, guid: 5f4b90e5f7ac74436b460d32d36ba59f, type: 3}
+  mapPrefab: {fileID: 8326553952776395922, guid: c64052128957e43aeb268f077e3c4a42, type: 3}
   width: 1000
   height: 1000
 --- !u!4 &109766081

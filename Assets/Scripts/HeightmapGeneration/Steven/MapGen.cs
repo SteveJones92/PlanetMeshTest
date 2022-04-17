@@ -10,6 +10,7 @@ using Random = UnityEngine.Random;
 public class MapGen : MonoBehaviour
 {
     public GameObject planePrefab;
+    public GameObject mapPrefab;
     public int width;
     public int height;
     // Start is called before the first frame update
@@ -18,23 +19,24 @@ public class MapGen : MonoBehaviour
     void Start()
     {
         var map = new Map(width, height);
-        var gameObj = new GameObject("Set " + transform.childCount);
-        gameObj.transform.SetParent(transform);
+        
+        var gameObj = Instantiate(mapPrefab, transform);
+        gameObj.name = "Map" + transform.childCount;
+        
         var hmPlane = Instantiate(planePrefab, gameObj.transform);
-        var cmPlane = Instantiate(planePrefab, new Vector3(10, 0, 0), Quaternion.identity, gameObj.transform);
+        var cmPlane = Instantiate(planePrefab, new Vector3(15, 0, 0), Quaternion.identity, gameObj.transform);
 
         var hmPlaneRenderer = hmPlane.GetComponent<MeshRenderer>();
-        var hmPlaneMeshFilter = hmPlane.GetComponent<MeshFilter>();
+        //var hmPlaneMeshFilter = hmPlane.GetComponent<MeshFilter>();
         var cmPlaneRenderer = cmPlane.GetComponent<MeshRenderer>();
-        var cmPlaneMeshFilter = cmPlane.GetComponent<MeshFilter>();
+        //var cmPlaneMeshFilter = cmPlane.GetComponent<MeshFilter>();
 
         map.SetRandomColors();
         var texs = GetTextures(map);
         hmPlaneRenderer.material.mainTexture = texs[0];
         cmPlaneRenderer.material.mainTexture = texs[1];
-        
-        File.WriteAllBytes("Assets/heightmap.png", texs[0].EncodeToPNG());
-        File.WriteAllBytes("Assets/colormap.png", texs[1].EncodeToPNG());
+        gameObj.GetComponent<TexturePrint>().SetHeightMap(texs[0]);
+        gameObj.GetComponent<TexturePrint>().SetColorMap(texs[1]);
     }
 
     [ShowInInspector]
