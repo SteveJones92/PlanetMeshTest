@@ -2,7 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Sirenix.OdinInspector;
+using TinkerWorX.AccidentalNoiseLibrary;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem.LowLevel;
+using Random = UnityEngine.Random;
 
 public class Map
 {
@@ -21,23 +25,53 @@ public class Map
         ColorMap = new Color[width * height];
     }
 
-    public void SetRandomColors()
+    public void SetColors()
     {
         for (var x = 0; x < Width * Height; x++)
         {
-            float grayValue = Random.Range(0, 255) / 255f;
-            Heightmap[x] = new Color(grayValue, grayValue, grayValue);
-            ColorMap[x] = new Color(Random.Range(0, 255) / 255f, Random.Range(0, 255) / 255f, Random.Range(0, 255) / 255f);
+            //Debug.Log(Heightmap[x].r);
+            float heightMapValue = Heightmap[x].r;
+            Color color;
+            
+            if (heightMapValue < 0f) {
+                color = Color.blue * .5f;
+            }
+            else if (heightMapValue < .2f)
+            {
+                color = Color.blue;
+            }
+            else if (heightMapValue < .4f)
+            {
+                color = Color.green * .7f;
+            }
+            else if (heightMapValue < .8f)
+            {
+                color = Color.gray;
+            }
+            else
+            {
+                color = Color.white; // snow
+            }
+
+            ColorMap[x] = color;
         }
     }
     
-    public void SetHeightMapNoise(int perlinXScale, int perlinYScale)
+    public void SetHeightMapNoise(int perlinXScale, int perlinYScale, float frequency, float lacunarity, int octaves, float offset, float h, float gain)
     {
+        var noiseFunction = new ImplicitFractal(FractalType.FractionalBrownianMotion, BasisType.Simplex, InterpolationType.Cubic);
+        noiseFunction.Frequency = frequency;
+        noiseFunction.Lacunarity = lacunarity;
+        noiseFunction.Octaves = octaves;
+        noiseFunction.Offset = offset;
+        noiseFunction.H = h;
+        noiseFunction.Gain = gain;
         for (var x = 0; x < Width; x++)
         {
             for (var y = 0; y < Height; y++)
             {
-                float grayValue = Mathf.PerlinNoise(x / (float) perlinXScale, y / (float) perlinYScale);
+                float grayValue = (float) noiseFunction.Get(x / (float)perlinXScale, y / (float)perlinYScale);
+                //float grayValue = Mathf.PerlinNoise(x / (float) perlinXScale, y / (float) perlinYScale);
                 Heightmap[x + y * Width] = new Color(grayValue, grayValue, grayValue);
             }
         }

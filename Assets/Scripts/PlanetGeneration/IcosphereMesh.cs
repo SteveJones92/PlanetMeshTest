@@ -77,7 +77,7 @@ public class IcosphereMesh : MonoBehaviour
     [UsedImplicitly]
     private static int MinMaxGenerations(int value, GUIContent label)
     {
-        return EditorGUILayout.IntSlider(label, value, 0, 8);
+        return EditorGUILayout.IntSlider(label, value, 0, 7);
     }
 
     private List<Axes> _AllAxes = new List<Axes>();
@@ -92,6 +92,18 @@ public class IcosphereMesh : MonoBehaviour
     public Vector2Int dimensionsForGeneration;
     [OnValueChanged(nameof(UpdateGeneration))]
     public Vector2Int perlinScale;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public float lacunarity;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public float frequency;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public float offset;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public int octaves;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public float h;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public float gain;
 
 
     private static SavedMeshes _meshes;
@@ -119,23 +131,6 @@ public class IcosphereMesh : MonoBehaviour
     
     #endregion
 
-    // private void UpdateGeneration()
-    // {
-    //     Texture2D[] texs = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y).GetTextures();
-    //     heightmap = texs[0];
-    //     colormap = texs[0];
-    //     for (int i = 0; i < _vertices.Length; i++)  //Applying heightmap to the sphere using uv coords
-    //     {
-    //         Color height_clr = heightmap.GetPixel((int)((_uvs[i].x) * heightmap.width), (int)((1 - _uvs[i].y) * heightmap.height));
-    //         Color actual_clr = colormap.GetPixel((int)((_uvs[i].x) * colormap.width), (int)((1 - _uvs[i].y) * colormap.height));
-    //         float he = height_clr.r * 0.025f;
-    //         Vector3 v = _vertices[i].normalized;
-    //         _vertices[i] = new Vector3(_vertices[i].x + v.x* he, _vertices[i].y + v.y* he, _vertices[i].z + + v.z* he );
-    //         _vertexColors[i] = actual_clr;
-    //     }
-    //     UpdateMesh();
-    // }
-    
     // Start, OnDrawGizmos
     #region Unity Functions
     
@@ -143,10 +138,10 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector]
     private void Start()
     {
-        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y);
+        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
         Texture2D[] texs = map.GetTextures();
         heightmap = texs[0];
-        colormap = texs[0];
+        colormap = texs[1];
         map.CreateTextureImages(name);
 
         if (!_constantsLoaded)
@@ -172,7 +167,7 @@ public class IcosphereMesh : MonoBehaviour
             _pow = EllipseScaleOutward(_p);
             calculateAxes();
             _meshes = new SavedMeshes(-1);
-            CreateMeshes(8);
+            CreateMeshes(7);
             _constantsLoaded = true;
         }
         GetComponent<MeshFilter>().mesh = _meshes.MeshList[_generations]; // highest detail mesh
@@ -193,10 +188,10 @@ public class IcosphereMesh : MonoBehaviour
 
     private void UpdateGeneration()
     {
-        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y);
+        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
         Texture2D[] texs = map.GetTextures();
         heightmap = texs[0];
-        colormap = texs[0];
+        colormap = texs[1];
         //map.CreateTextureImages(name);
         
         Mesh mesh = _meshes.MeshList[_generations];

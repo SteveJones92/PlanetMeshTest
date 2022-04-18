@@ -18,9 +18,20 @@ public class MapGen : MonoBehaviour
     public int height;
 
     [OnValueChanged(nameof(UpdateCurrentMap))]
-    public int perlinXScale;
+    public Vector2Int perlinScale;
+
     [OnValueChanged(nameof(UpdateCurrentMap))]
-    public int perlinYscale;
+    public float lacunarity;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public float frequency;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public float offset;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public int octaves;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public float h;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public float gain;
     
     [ShowInInspector, ShowIf("@_currentObj")]
     private GameObject _currentObj;
@@ -32,17 +43,17 @@ public class MapGen : MonoBehaviour
     {
         // set up map
         Map map = new Map(width, height);
-        map.SetRandomColors();
-        map.SetHeightMapNoise(perlinXScale, perlinYscale);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
+        map.SetColors();
         
         CreateMapPreview(map);
     }
 
-    public static Map CreateMap(int width, int height, int perlinX, int perlinY)
+    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves, float offset, float h, float gain)
     {
         Map map = new Map(width, height);
-        map.SetRandomColors();
-        map.SetHeightMapNoise(perlinX, perlinY);
+        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain);
+        map.SetColors();
         return map;
     }
 
@@ -104,8 +115,8 @@ public class MapGen : MonoBehaviour
         }
 
         Map map = new Map(width, height);
-        map.SetRandomColors();
-        map.SetHeightMapNoise(perlinXScale, perlinYscale);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
+        map.SetColors();
         var texs = map.GetTextures();
         
         hmMeshRenderer.sharedMaterial.mainTexture = texs[0];
