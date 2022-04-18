@@ -8,7 +8,7 @@ public class ShipController : MonoBehaviour
 
     public float forwardSpeed = 25f, strafeSpeed = 7.5f, hoverSpeed = 5f;
     //private float activeForwardSpeed, activeStrafeSpeed, activeHoverSpeed;
-    private float forwardAcceleration = 2.5f, strafeAcceleration = 2f, hoverAcceleration = 2f;
+    //private float forwardAcceleration = 2.5f, strafeAcceleration = 2f, hoverAcceleration = 2f;
 
     public float lookRateSpeed = 90f;
     private Vector2 lookInput, screenCenter, mouseDistance;

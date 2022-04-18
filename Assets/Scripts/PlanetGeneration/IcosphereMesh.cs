@@ -64,78 +64,91 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("fv90Cw_a")]
     // FrontViewRotation90Cw of _a
     private static Vector3 _ffa;
-    [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("mow")]
+    //[ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("mow")]
     // outward scaled m
-    private static Vector3 _mow;
+    //private static Vector3 _mow;
     [ShowInInspector, ReadOnly, FoldoutGroup("Common Vectors"), HideLabel, SuffixLabel("pow")]
     // outward scaled p
     private static Vector3 _pow;
 
-    [ShowInInspector, FoldoutGroup("Mesh"),  InlineEditor(InlineEditorObjectFieldModes.CompletelyHidden)]
-    private Mesh _mesh;
-
-    [ShowInInspector, FoldoutGroup("Mesh")]
-    private int[] _triangles;
-    [ShowInInspector, FoldoutGroup("Mesh")]
-    private Vector3[] _vertices;
-    [ShowInInspector, FoldoutGroup("Mesh")]
-    private Vector2[] _uvs;
-    [ShowInInspector, FoldoutGroup("Mesh"), ColorPalette("Tropical")]
-    private Color[] _vertexColors;
-    
-    [SerializeField, OnValueChanged("DisplayPoints"), CustomValueDrawer("MinMaxGenerations")]
+    [SerializeField, OnValueChanged("UpdateGeneration"), CustomValueDrawer("MinMaxGenerations")]
     private int _generations;
     
     [UsedImplicitly]
     private static int MinMaxGenerations(int value, GUIContent label)
     {
-        return EditorGUILayout.IntSlider(label, value, 0, 10);
-    }
-
-    [SerializeField, ToggleLeft, OnValueChanged("DisplayPoints")] private bool _applyPerlinNoise;
-    [SerializeField, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise"), DelayedProperty]
-    private float _perlinXYScale;
-    [SerializeField, OnValueChanged("DisplayPoints"), MinValue(1), HideIf("@!_applyPerlinNoise"), DelayedProperty]
-    private float _perlinOutputScale;
-
-    // Grid display toggles
-    [ShowInInspector, ToggleLeft] private bool _displayPointsGizmos;
-
-    [ShowInInspector, HideIf("@!_displayPointsGizmos"), MinValue(0.00001f)]
-    private float _pointRadius = 0.005f;
-    
-    [SerializeField, ToggleLeft, OnValueChanged("UpdateColorsFromInspector")] private bool _lerpColors;
-    [SerializeField, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color1 = Color.blue;
-    [SerializeField, ColorPalette, HideIf("@!_lerpColors"), OnValueChanged("UpdateColorsFromInspector")] private Color _color2 = Color.red;
-
-    [UsedImplicitly]
-    private void UpdateColorsFromInspector()
-    {
-        UpdateColors();
-        UpdateMesh();
+        return EditorGUILayout.IntSlider(label, value, 0, 8);
     }
 
     private List<Axes> _AllAxes = new List<Axes>();
     private List<Vector3> geodesic_grid_base = new List<Vector3>();
     private List<Vpair> duplicated_points = new List<Vpair>();
-    private List<Vector3> _displayPoints = new List<Vector3>();
     private List<Vector3> _geodesicGrid = new List<Vector3>();     // Result array
     private List<Vector3> _allcutPoints = new List<Vector3>();      // Array that stores all the generated cutpoints including one of the apex point
 
+    private Texture2D heightmap;
+    private Texture2D colormap;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public Vector2Int dimensionsForGeneration;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public Vector2Int perlinScale;
+
+
+    private static SavedMeshes _meshes;
+
+    private struct SavedMeshes
+    {
+        public int Generations;
+        public List<Mesh> MeshList;
+        public List<Vector3[]> VerticesOriginalList;
+
+        public SavedMeshes(int generations)
+        {
+            Generations = generations;
+            this.MeshList = new List<Mesh>();
+            this.VerticesOriginalList = new List<Vector3[]>();
+        }
+
+        public void AddGeneration(Mesh mesh, Vector3[] verticesOriginal)
+        {
+            MeshList.Add(mesh);
+            VerticesOriginalList.Add(verticesOriginal);
+            Generations++;
+        }
+    }
+    
     #endregion
 
+    // private void UpdateGeneration()
+    // {
+    //     Texture2D[] texs = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y).GetTextures();
+    //     heightmap = texs[0];
+    //     colormap = texs[0];
+    //     for (int i = 0; i < _vertices.Length; i++)  //Applying heightmap to the sphere using uv coords
+    //     {
+    //         Color height_clr = heightmap.GetPixel((int)((_uvs[i].x) * heightmap.width), (int)((1 - _uvs[i].y) * heightmap.height));
+    //         Color actual_clr = colormap.GetPixel((int)((_uvs[i].x) * colormap.width), (int)((1 - _uvs[i].y) * colormap.height));
+    //         float he = height_clr.r * 0.025f;
+    //         Vector3 v = _vertices[i].normalized;
+    //         _vertices[i] = new Vector3(_vertices[i].x + v.x* he, _vertices[i].y + v.y* he, _vertices[i].z + + v.z* he );
+    //         _vertexColors[i] = actual_clr;
+    //     }
+    //     UpdateMesh();
+    // }
+    
     // Start, OnDrawGizmos
     #region Unity Functions
     
     [Title("Functions")] 
     [ShowInInspector]
     private void Start()
-    {   // Load Map
-        if (UnityEngine.Windows.File.Exists("Assets/Resources/earth_heightmap.jpg"))
-        {
-            heightmap = (Texture2D)UnityEngine.Resources.Load("earth_heightmap");
-            if (heightmap == null) print("Loadsuccess" + heightmap.height + " " +  heightmap.width);
-        }
+    {
+        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y);
+        Texture2D[] texs = map.GetTextures();
+        heightmap = texs[0];
+        colormap = texs[0];
+        map.CreateTextureImages(name);
+
         if (!_constantsLoaded)
         {
             _l = 4 / Mathf.Sqrt(10 + Mathf.Sqrt(20)); // l = 4 / sqrt(10 + sqrt(20)) page4
@@ -155,18 +168,59 @@ public class IcosphereMesh : MonoBehaviour
             _c = new Vector3(_b.x / _magBxBz, 0, _b.z / _magBxBz);
             _m = new Vector3(-_c.x / 2, _sqrt3On4 * _c.x, _c.z);
             _ffa = FrontViewRotation90Cw(_a);
-            _mow = EllipseScaleOutward(_m);
+            //_mow = EllipseScaleOutward(_m);
             _pow = EllipseScaleOutward(_p);
+            calculateAxes();
+            _meshes = new SavedMeshes(-1);
+            CreateMeshes(8);
             _constantsLoaded = true;
         }
-
-        _mesh = new Mesh();
-        _mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        GetComponent<MeshFilter>().mesh = _mesh;
-        calculateAxes();
-        DisplayPoints();
+        GetComponent<MeshFilter>().mesh = _meshes.MeshList[_generations]; // highest detail mesh
     }
     
+    private void CreateMeshes(int generations)
+    {
+        _generations = 0;
+        for (int i = 0; i <= generations; i++)
+        {
+            Debug.Log("Creating generation: " + _generations);
+            CreateMesh();
+            _generations++;
+        }
+
+        _generations = generations;
+    }
+
+    private void UpdateGeneration()
+    {
+        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y);
+        Texture2D[] texs = map.GetTextures();
+        heightmap = texs[0];
+        colormap = texs[0];
+        //map.CreateTextureImages(name);
+        
+        Mesh mesh = _meshes.MeshList[_generations];
+        Vector3[] vertices = new Vector3[mesh.vertices.Length]; 
+        Array.Copy(_meshes.VerticesOriginalList[_generations], vertices, mesh.vertices.Length);
+        Vector2[] uvs = mesh.uv;
+        Color[] vertexColors = mesh.colors;
+        
+        for (int i = 0; i < vertices.Length; i++)  //Applying heightmap to the sphere using uv coords
+        {
+            Color heightClr = heightmap.GetPixel((int)((uvs[i].x) * heightmap.width), (int)((1 - uvs[i].y) * heightmap.height));
+            Color actualClr = colormap.GetPixel((int)((uvs[i].x) * colormap.width), (int)((1 - uvs[i].y) * colormap.height));
+            float he = heightClr.r * 0.025f;
+            Vector3 v = vertices[i].normalized;
+            vertices[i] = new Vector3(vertices[i].x + v.x* he, vertices[i].y + v.y* he, vertices[i].z + + v.z* he );
+            vertexColors[i] = actualClr;
+        }
+
+        mesh.vertices = vertices;
+        mesh.colors = vertexColors;
+        mesh.RecalculateNormals();
+        GetComponent<MeshFilter>().mesh = mesh;
+    }
+
     void calculateAxes()
     {
         _AllAxes.Clear();
@@ -455,20 +509,6 @@ public class IcosphereMesh : MonoBehaviour
             new Vector3(cardinal.z.x,cardinal.z.y,cardinal.z.z)
         ));
     }
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.green;
-        if (_displayPointsGizmos)
-        {
-            foreach (var point in _displayPoints)
-            {
-                Gizmos.DrawSphere(point, _pointRadius);
-            }
-        }
-
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawSphere(Vector3.forward, _pointRadius * 2);
-    }
 
     #endregion
 
@@ -742,15 +782,6 @@ public class IcosphereMesh : MonoBehaviour
         ret[15] = 1;
         return ret;
     }
-    private void DrawAxes(Axes a)
-    {
-        for(int i = 1; i < 5; ++i)
-        {
-            _displayPoints.Add(a.x/i);
-            _displayPoints.Add(a.y/i);
-            _displayPoints.Add(a.z/i);
-        }
-    }
     private void ApplyMat4toAxis(ref Matrix4x4 l, ref Axes a)
     {
         a.x = l.MultiplyPoint3x4(a.x);
@@ -760,7 +791,6 @@ public class IcosphereMesh : MonoBehaviour
     }
     private void rotateAction(int gd_cnt, ref int[] is_edge, ref Matrix4x4 m, ref List<int> trilist)
     {
-        int start_pos = _geodesicGrid.Count;
         int[] tritemp = new int[gd_cnt];
         for(int i = 0; i < gd_cnt; ++i)
         {
@@ -788,14 +818,12 @@ public class IcosphereMesh : MonoBehaviour
                     tritemp[i] = _geodesicGrid.Count;
                     duplicated_points.Add(new Vpair(newP, is_edge[i], _geodesicGrid.Count));
                     _geodesicGrid.Add(newP);
-                    _displayPoints.Add(newP);
                 }
             }
             else
             {
                 tritemp[i] = _geodesicGrid.Count;
                 _geodesicGrid.Add(newP);
-                _displayPoints.Add(newP);
             }
         }
         int columnSize = (int)Mathf.Pow(2, _generations + 1) + 1;
@@ -819,26 +847,17 @@ public class IcosphereMesh : MonoBehaviour
             offset += columnSize;
             columnSize--;
         }
-        return;
     }
     
     // DisplayPoints (paper implementation)
     #region PointsCalculation
-
-    [ShowInInspector]
-    private void DisplayPoints()
+    
+    private void CreateMesh()
     {
-        float timer = Time.realtimeSinceStartup;
-        _displayPoints.Clear();
         _allcutPoints.Clear();
         _geodesicGrid.Clear();
         duplicated_points.Clear();
         geodesic_grid_base.Clear();
-        // 3 corners
-        //_displayPoints.Add(_a);
-        //_displayPoints.Add(_b);
-        //_displayPoints.Add(_bb);
-        //_displayPoints.Add(Vector3.forward);
 
         // list to store new points, start with seedPoint
         Queue<Vector3> cutPoints = new Queue<Vector3>();
@@ -866,12 +885,10 @@ public class IcosphereMesh : MonoBehaviour
             }
         }
         _allcutPoints.Sort((a, b) => b[1].CompareTo(a[1]));
-
-        //int planecount = 0;
+        
         foreach (var point in _allcutPoints)
         {
             AddSlicingPlanes(point, ref planes);  // calculate all the planes and add them into the list for next step's use
-            //planecount += 3;
         }
         
         for(int i = 0; i < _allcutPoints.Count; ++i)        
@@ -883,18 +900,15 @@ public class IcosphereMesh : MonoBehaviour
                 if(t[2] >= 0)
                 {
                     _geodesicGrid.Add(t);
-                    _displayPoints.Add(t);
                 }
             }
             if(i == 0)          
             {
                 _geodesicGrid.Add(_a);
-                _displayPoints.Add(_a);
 
             }
             if(i == _allcutPoints.Count - 1)
             {
-                _displayPoints.Add(_bb);
                 _geodesicGrid.Add(_bb);
             }
         }
@@ -994,7 +1008,8 @@ public class IcosphereMesh : MonoBehaviour
         print("Rotated grid has a total of: " + _geodesicGrid.Count + " Grid Points");
         print("After rotation Duplicated edges has a total of: " + duplicated_points.Count + " Grid Points");
 
-        _vertices = _geodesicGrid.ToArray();
+        Vector3[] vertices = _geodesicGrid.ToArray();
+        Color[] vertexColors = new Color[vertices.Length];
         
         Vector2[] uvs = new Vector2[_geodesicGrid.Count];
         for(int i = 0; i < uvs.Length; ++i)
@@ -1004,93 +1019,34 @@ public class IcosphereMesh : MonoBehaviour
             , 0.5f + Mathf.Asin(_geodesicGrid[i].y)/(Mathf.PI)
             );
         }
-        _uvs = uvs;  // UV calculations
 
-        for (int i = 0; i < _vertices.Length; i++)  //Applying heightmap to the sphere using uv coords
+        for (int i = 0; i < vertices.Length; i++)  //Applying heightmap to the sphere using uv coords
         {
-            Color height_clr = heightmap.GetPixel((int)((uvs[i].x) * heightmap.width), (int)((1 - uvs[i].y) * heightmap.height));
-            float he = height_clr.r * 0.025f;
-            Vector3 v = _vertices[i].normalized;
-            _vertices[i] = new Vector3(_vertices[i].x + v.x* he, _vertices[i].y + v.y* he, _vertices[i].z + + v.z* he );
+            Color heightClr = heightmap.GetPixel((int)((uvs[i].x) * heightmap.width), (int)((1 - uvs[i].y) * heightmap.height));
+            Color actualClr = colormap.GetPixel((int)((uvs[i].x) * colormap.width), (int)((1 - uvs[i].y) * colormap.height));
+            float he = heightClr.r * 0.025f;
+            Vector3 v = vertices[i].normalized;
+            vertices[i] = new Vector3(vertices[i].x + v.x* he, vertices[i].y + v.y* he, vertices[i].z + + v.z* he );
+            vertexColors[i] = actualClr;
         }
-
-        UpdateVerticesPerlin();
-        UpdateTriangles(triangleList);
-        UpdateColors();
-        UpdateMesh();
-        Debug.Log(Time.realtimeSinceStartup - timer);
+        
+        Mesh mesh = new Mesh();
+        if (vertices.Length >= Mathf.Pow(2, 16))
+        {
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        }
+        
+        mesh.vertices = vertices;
+        mesh.triangles = triangleList.ToArray();
+        mesh.colors = vertexColors;
+        mesh.uv = uvs;
+        mesh.RecalculateNormals();
+        
+        _meshes.AddGeneration(mesh, _geodesicGrid.ToArray());
     }
 
     #endregion
-    private Texture2D heightmap;
-    // update the mesh component (triangles, vertices, color
-    #region UpdatingMesh
 
-    [ShowInInspector]
-    private void UpdateMesh()
-    {
-        _mesh.Clear();
-        _mesh.vertices = _vertices;
-        _mesh.triangles = _triangles;
-        _mesh.colors = _vertexColors;
-        _mesh.uv = _uvs;
-        _mesh.RecalculateNormals();
-    }
-    public static float PerlinNoise3D(float x, float y, float z)
-    {
-        x +=1000;
-        y -=100;
-        z +=10;
-        float xy = _perlin3DFixed(x, y);
-        float xz = _perlin3DFixed(x, z);
-        float yz = _perlin3DFixed(y, z);
-        float yx = _perlin3DFixed(y, x);
-        float zx = _perlin3DFixed(z, x);
-        float zy = _perlin3DFixed(z, y);
-        return xy * xz * yz * yx * zx * zy;
-    }
-    static float _perlin3DFixed(float a, float b)
-    {
-        return Mathf.Sin(Mathf.PI * Mathf.PerlinNoise(a, b));
-    }
-    private void UpdateVerticesPerlin()
-    {
-        if (_applyPerlinNoise)
-        {
-            for (int i = 0; i < _vertices.Length; i++)
-            {
-                //float perlin = Mathf.PerlinNoise(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale) / _perlinOutputScale;
-                float perlin = PerlinNoise3D(_vertices[i].x * _perlinXYScale, _vertices[i].y * _perlinXYScale, _vertices[i].z * _perlinXYScale) / _perlinOutputScale;
-                Vector3 v = _vertices[i].normalized;
-                _vertices[i] = new Vector3(_vertices[i].x + v.x* perlin, _vertices[i].y + v.y* perlin, _vertices[i].z + + v.z* perlin );
-            }
-        }
-    }
-
-    private void UpdateTriangles(List<int> triangleList)
-    {
-        _triangles = triangleList.ToArray();
-    }
-
-    [ShowInInspector]
-    private void UpdateColors()
-    {
-        _vertexColors = new Color[_vertices.Length];
-        for (int i = 0; i < _vertices.Length; i++)
-        {
-            if (_lerpColors)
-            {
-                _vertexColors[i] = Color.Lerp(_color1, _color2, (_vertices[i].magnitude - (float)1)*100f );
-            }
-            else
-            {
-                _vertexColors[i] = new Color(UnityEngine.Random.Range(0, 255) / 255f, UnityEngine.Random.Range(0, 255) / 255f,
-                    UnityEngine.Random.Range(0, 255) / 255f);
-            }
-        }
-    }
-
-    #endregion
 
     // simple icosphere creation
     #region Unused
