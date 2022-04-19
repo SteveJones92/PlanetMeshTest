@@ -104,6 +104,12 @@ public class IcosphereMesh : MonoBehaviour
     public float h;
     [OnValueChanged(nameof(UpdateGeneration))]
     public float gain;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public bool wrapped;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public bool stretched;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public int seed;
 
 
     private static SavedMeshes _meshes;
@@ -138,7 +144,7 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector]
     private void Start()
     {
-        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
+        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
         Texture2D[] texs = map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
@@ -188,7 +194,7 @@ public class IcosphereMesh : MonoBehaviour
 
     private void UpdateGeneration()
     {
-        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
+        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
         Texture2D[] texs = map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];

@@ -32,6 +32,13 @@ public class MapGen : MonoBehaviour
     public float h;
     [OnValueChanged(nameof(UpdateCurrentMap))]
     public float gain;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public bool wrapped;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public bool stretched;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public int seed;
+    
     
     [ShowInInspector, ShowIf("@_currentObj")]
     private GameObject _currentObj;
@@ -43,16 +50,16 @@ public class MapGen : MonoBehaviour
     {
         // set up map
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
         map.SetColors();
         
         CreateMapPreview(map);
     }
 
-    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves, float offset, float h, float gain)
+    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves, float offset, float h, float gain, bool wrapped, int seed, bool stretched)
     {
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain);
+        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
         map.SetColors();
         return map;
     }
@@ -115,7 +122,7 @@ public class MapGen : MonoBehaviour
         }
 
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
         map.SetColors();
         var texs = map.GetTextures();
         
