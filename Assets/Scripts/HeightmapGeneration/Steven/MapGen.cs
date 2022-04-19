@@ -12,21 +12,21 @@ public class MapGen : MonoBehaviour
 {
     public GameObject planePrefab;
     public GameObject mapPrefab;
-    [OnValueChanged(nameof(UpdateCurrentMap))]
+    [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(1)]
     public int width;
-    [OnValueChanged(nameof(UpdateCurrentMap))]
+    [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(1)]
     public int height;
 
     [OnValueChanged(nameof(UpdateCurrentMap))]
     public Vector2Int perlinScale;
 
-    [OnValueChanged(nameof(UpdateCurrentMap))]
+    [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(0.001f)]
     public float lacunarity;
-    [OnValueChanged(nameof(UpdateCurrentMap))]
+    [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(0.001f)]
     public float frequency;
     [OnValueChanged(nameof(UpdateCurrentMap))]
     public float offset;
-    [OnValueChanged(nameof(UpdateCurrentMap))]
+    [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(1)]
     public int octaves;
     [OnValueChanged(nameof(UpdateCurrentMap))]
     public float h;
@@ -38,6 +38,8 @@ public class MapGen : MonoBehaviour
     public bool stretched;
     [OnValueChanged(nameof(UpdateCurrentMap))]
     public int seed;
+    [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(0.001f)]
+    public float stretchPower;
     
     
     [ShowInInspector, ShowIf("@_currentObj")]
@@ -50,16 +52,16 @@ public class MapGen : MonoBehaviour
     {
         // set up map
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
         map.SetColors();
         
         CreateMapPreview(map);
     }
 
-    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves, float offset, float h, float gain, bool wrapped, int seed, bool stretched)
+    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves, float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower)
     {
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
+        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
         map.SetColors();
         return map;
     }
@@ -122,7 +124,7 @@ public class MapGen : MonoBehaviour
         }
 
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
         map.SetColors();
         var texs = map.GetTextures();
         

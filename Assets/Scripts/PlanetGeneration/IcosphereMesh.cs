@@ -92,13 +92,13 @@ public class IcosphereMesh : MonoBehaviour
     public Vector2Int dimensionsForGeneration;
     [OnValueChanged(nameof(UpdateGeneration))]
     public Vector2Int perlinScale;
-    [OnValueChanged(nameof(UpdateGeneration))]
+    [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
     public float lacunarity;
-    [OnValueChanged(nameof(UpdateGeneration))]
+    [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
     public float frequency;
     [OnValueChanged(nameof(UpdateGeneration))]
     public float offset;
-    [OnValueChanged(nameof(UpdateGeneration))]
+    [OnValueChanged(nameof(UpdateGeneration)), MinValue(1)]
     public int octaves;
     [OnValueChanged(nameof(UpdateGeneration))]
     public float h;
@@ -110,7 +110,10 @@ public class IcosphereMesh : MonoBehaviour
     public bool stretched;
     [OnValueChanged(nameof(UpdateGeneration))]
     public int seed;
+    [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
+    public float stretchPower;
 
+    private Map _map;
 
     private static SavedMeshes _meshes;
 
@@ -144,11 +147,11 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector]
     private void Start()
     {
-        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
-        Texture2D[] texs = map.GetTextures();
+        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
-        map.CreateTextureImages(name);
+        //_map.CreateTextureImages(name);
 
         if (!_constantsLoaded)
         {
@@ -194,8 +197,8 @@ public class IcosphereMesh : MonoBehaviour
 
     private void UpdateGeneration()
     {
-        Map map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched);
-        Texture2D[] texs = map.GetTextures();
+        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
         //map.CreateTextureImages(name);
@@ -220,6 +223,12 @@ public class IcosphereMesh : MonoBehaviour
         mesh.colors = vertexColors;
         mesh.RecalculateNormals();
         GetComponent<MeshFilter>().mesh = mesh;
+    }
+
+    [ShowInInspector]
+    private void PrintOutMap()
+    {
+        _map.CreateTextureImages(name);
     }
 
     void calculateAxes()
