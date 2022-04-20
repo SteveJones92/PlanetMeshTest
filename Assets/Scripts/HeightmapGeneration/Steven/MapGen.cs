@@ -40,10 +40,37 @@ public class MapGen : MonoBehaviour
     public int seed;
     [OnValueChanged(nameof(UpdateCurrentMap)), MinValue(0.001f)]
     public float stretchPower;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public FractalType fractalType;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public BasisType basisType;
+    [OnValueChanged(nameof(UpdateCurrentMap))]
+    public InterpolationType interpolationType;
     
     
-    [ShowInInspector, ShowIf("@_currentObj")]
+    [ShowInInspector, ShowIf("@_currentObj"), OnValueChanged(nameof(LoadValues))]
     private GameObject _currentObj;
+
+    void LoadValues()
+    {
+        TexturePrint t = _currentObj.GetComponent<TexturePrint>();
+        lacunarity = t.lacunarity;
+        perlinScale = t.perlinScale;
+        width = t.width;
+        height = t.height;
+        frequency = t.frequency;
+        offset = t.offset;
+        octaves = t.octaves;
+        h = t.h;
+        gain = t.gain;
+        wrapped = t.wrapped;
+        stretched = t.stretched;
+        seed = t.seed;
+        stretchPower = t.stretchPower;
+        fractalType = t.fractalType;
+        basisType = t.basisType;
+        interpolationType = t.interpolationType;
+    }
     
     // Start is called before the first frame update
     
@@ -52,16 +79,17 @@ public class MapGen : MonoBehaviour
     {
         // set up map
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
         map.SetColors();
         
         CreateMapPreview(map);
     }
 
-    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves, float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower)
+    public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves,
+        float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower, FractalType fractalType, BasisType basisType, InterpolationType interpolationType)
     {
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
         map.SetColors();
         return map;
     }
@@ -93,8 +121,25 @@ public class MapGen : MonoBehaviour
         // set the texture of it
         hmMeshRenderer.sharedMaterial.mainTexture = texs[0];
         cmMeshRenderer.sharedMaterial.mainTexture = texs[1];
-        
-        _currentObj.GetComponent<TexturePrint>().map = map;
+
+        TexturePrint t = _currentObj.GetComponent<TexturePrint>();
+        t.map = map;
+        t.lacunarity = lacunarity;
+        t.perlinScale = perlinScale;
+        t.width = width;
+        t.height = height;
+        t.frequency = frequency;
+        t.offset = offset;
+        t.octaves = octaves;
+        t.h = h;
+        t.gain = gain;
+        t.wrapped = wrapped;
+        t.stretched = stretched;
+        t.seed = seed;
+        t.stretchPower = stretchPower;
+        t.fractalType = fractalType;
+        t.basisType = basisType;
+        t.interpolationType = interpolationType;
     }
 
     private void UpdateCurrentMap()
@@ -124,14 +169,31 @@ public class MapGen : MonoBehaviour
         }
 
         Map map = new Map(width, height);
-        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
         map.SetColors();
         var texs = map.GetTextures();
         
         hmMeshRenderer.sharedMaterial.mainTexture = texs[0];
         cmMeshRenderer.sharedMaterial.mainTexture = texs[1];
         
-        _currentObj.GetComponent<TexturePrint>().map = map;
+        TexturePrint t = _currentObj.GetComponent<TexturePrint>();
+        t.map = map;
+        t.lacunarity = lacunarity;
+        t.perlinScale = perlinScale;
+        t.width = width;
+        t.height = height;
+        t.frequency = frequency;
+        t.offset = offset;
+        t.octaves = octaves;
+        t.h = h;
+        t.gain = gain;
+        t.wrapped = wrapped;
+        t.stretched = stretched;
+        t.seed = seed;
+        t.stretchPower = stretchPower;
+        t.fractalType = fractalType;
+        t.basisType = basisType;
+        t.interpolationType = interpolationType;
     }
 
     [ShowInInspector]

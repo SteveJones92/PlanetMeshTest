@@ -4,6 +4,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 using JetBrains.Annotations;
+using TinkerWorX.AccidentalNoiseLibrary;
 
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
@@ -112,6 +113,12 @@ public class IcosphereMesh : MonoBehaviour
     public int seed;
     [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
     public float stretchPower;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public FractalType fractalType;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public BasisType basisType;
+    [OnValueChanged(nameof(UpdateGeneration))]
+    public InterpolationType interpolationType;
 
     private Map _map;
 
@@ -147,7 +154,8 @@ public class IcosphereMesh : MonoBehaviour
     [ShowInInspector]
     private void Start()
     {
-        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset,
+            h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
         Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
@@ -197,7 +205,8 @@ public class IcosphereMesh : MonoBehaviour
 
     private void UpdateGeneration()
     {
-        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower);
+        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset,
+            h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
         Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
