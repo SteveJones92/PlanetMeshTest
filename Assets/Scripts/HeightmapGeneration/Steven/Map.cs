@@ -57,9 +57,10 @@ public class Map
         }
     }
     
-    public void SetHeightMapNoise(int perlinXScale, int perlinYScale, float frequency, float lacunarity, int octaves, float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower)
+    public void SetHeightMapNoise(int perlinXScale, int perlinYScale, float frequency, float lacunarity, int octaves,
+        float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower, FractalType fractalType, BasisType basisType, InterpolationType interpolationType)
     {
-        var noiseFunction = new ImplicitFractal(FractalType.FractionalBrownianMotion, BasisType.Simplex, InterpolationType.Cubic);
+        var noiseFunction = new ImplicitFractal(fractalType, basisType, interpolationType);
         noiseFunction.Frequency = frequency;
         noiseFunction.Lacunarity = lacunarity;
         noiseFunction.Octaves = octaves;
@@ -77,7 +78,8 @@ public class Map
             {
                 // percentage away from middle
                 stretchedPercentage = 1 - Mathf.Abs(Height / 2f - y) / (Height / 2f);
-                stretchedPercentage = Mathf.Pow(stretchedPercentage, stretchPower);
+                //stretchedPercentage = Mathf.Pow(stretchedPercentage, stretchPower);
+                stretchedPercentage = Mathf.Sin(stretchedPercentage*1.5708f);
             }
             int newWidth = (int)(Width * stretchedPercentage);
             float stretchOffset = (Width - newWidth) / 2f;
