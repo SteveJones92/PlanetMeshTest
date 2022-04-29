@@ -161,7 +161,6 @@ public class MapGen : MonoBehaviour
                 cmMeshRenderer = child;
             }
         }
-
         if (!cmMeshRenderer || !hmMeshRenderer)
         {
             Debug.Log("Map items not found");
