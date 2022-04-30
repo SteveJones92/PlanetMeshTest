@@ -46,6 +46,8 @@ public class MapGen : MonoBehaviour
     public BasisType basisType;
     [OnValueChanged(nameof(UpdateCurrentMap))]
     public InterpolationType interpolationType;
+    [OnValueChanged(nameof(UpdateCurrentMap)), ColorPalette]
+    public Color[] colors;
     
     
     [ShowInInspector, ShowIf("@_currentObj"), OnValueChanged(nameof(LoadValues))]
@@ -80,17 +82,17 @@ public class MapGen : MonoBehaviour
         // set up map
         Map map = new Map(width, height);
         map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
-        map.SetColors();
+        map.SetColors(colors);
         
         CreateMapPreview(map);
     }
 
     public static Map CreateMap(int width, int height, int perlinX, int perlinY, float frequency, float lacunarity, int octaves,
-        float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower, FractalType fractalType, BasisType basisType, InterpolationType interpolationType)
+        float offset, float h, float gain, bool wrapped, int seed, bool stretched, float stretchPower, FractalType fractalType, BasisType basisType, InterpolationType interpolationType, Color[] colors)
     {
         Map map = new Map(width, height);
         map.SetHeightMapNoise(perlinX, perlinY, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
-        map.SetColors();
+        map.SetColors(colors);
         return map;
     }
 
@@ -169,7 +171,7 @@ public class MapGen : MonoBehaviour
 
         Map map = new Map(width, height);
         map.SetHeightMapNoise(perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset, h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
-        map.SetColors();
+        map.SetColors(colors);
         var texs = map.GetTextures();
         
         hmMeshRenderer.sharedMaterial.mainTexture = texs[0];

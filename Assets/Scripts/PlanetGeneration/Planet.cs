@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
+using Sirenix.OdinInspector.Editor;
 using Sirenix.Serialization;
 using TinkerWorX.AccidentalNoiseLibrary;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Serialization;
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
@@ -48,6 +50,8 @@ public class Planet : MonoBehaviour
     public BasisType basisType;
     [OnValueChanged(nameof(UpdateGeneration))]
     public InterpolationType interpolationType;
+    [ColorPalette]
+    public Color[] colors;
 
     private static SavedMeshes _meshes;
 
@@ -175,7 +179,7 @@ public class Planet : MonoBehaviour
     private void CreateMap()
     {
         _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset,
-            h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType);
+            h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType, colors);
         Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
