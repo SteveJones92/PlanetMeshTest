@@ -40,18 +40,19 @@ public class Planet : MonoBehaviour
         }
     }
     
-    [SerializeField, CustomValueDrawer("MinMaxGenerations")]
-    private int currentGeneration;
+    // [SerializeField, CustomValueDrawer("MinMaxGenerations")]
+    [SerializeField]
+    private int currentGeneration = 6;
 
     [SerializeField]
     private int maxGenerations = 8;
 
     
-    [UsedImplicitly]
-    private int MinMaxGenerations(int value, GUIContent label)
-    {
-        return EditorGUILayout.IntSlider(label, value, 0, maxGenerations);
-    }
+    // [UsedImplicitly]
+    // private int MinMaxGenerations(int value, GUIContent label)
+    // {
+    //     return EditorGUILayout.IntSlider(label, value, 0, maxGenerations);
+    // }
 
     [ShowInInspector] private string outputName = "Assets/Resources/Generation";
     
