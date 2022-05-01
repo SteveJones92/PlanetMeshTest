@@ -7,23 +7,29 @@ using UnityEngine.SceneManagement;
 public class SolarSystem : MonoBehaviour
 {
     private List<Transform> objs;
+    private List<int> rotations;
+    
     // Start is called before the first frame update
     void Start()
     {
         objs = new List<Transform>();
+        rotations = new List<int>();
         foreach (Transform child in transform)
         {
             if (child.GetComponent<Planet>() != null)
+            {
                 objs.Add(child);
+                rotations.Add(Random.Range(3, 13));
+            }
         }
     }
 
     private void OnPreload(InputValue inp)
     {
-        Debug.Log("preload");
+        //Debug.Log("preload");
         if (_asyncOperation == null)
         {
-            Debug.Log("Started Scene Preloading");
+            //Debug.Log("Started Scene Preloading");
 
             // Start scene preloading.
             this.StartCoroutine(this.LoadSceneAsyncProcess(sceneName: this._sceneName));
@@ -32,11 +38,11 @@ public class SolarSystem : MonoBehaviour
 
     private void OnActivate(InputValue inp)
     {
-        Debug.Log("activate");
+        //Debug.Log("activate");
         // Press the space key to activate the Scene.
         if (_asyncOperation != null)
         {
-            Debug.Log("Allowed Scene Activation");
+            //Debug.Log("Allowed Scene Activation");
 
             this._asyncOperation.allowSceneActivation = true;
             //SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene());
@@ -46,9 +52,12 @@ public class SolarSystem : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        int i = 0;
         foreach (var obj in objs)
         {
-            obj.RotateAround(transform.position, transform.up, (50000f / Vector3.Distance(obj.position, transform.position)) * Time.deltaTime);
+            obj.RotateAround(transform.position, transform.up, (40000f / Vector3.Distance(obj.position, transform.position)) * Time.deltaTime);
+            obj.Rotate(transform.up, rotations[i] * Time.deltaTime);
+            i++;
         }
     }
     

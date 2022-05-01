@@ -1,17 +1,12 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
 using Sirenix.Serialization;
-using TinkerWorX.AccidentalNoiseLibrary;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
-using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
 public class Planet : MonoBehaviour
@@ -19,40 +14,16 @@ public class Planet : MonoBehaviour
     private Map _map;
     private Texture2D heightmap;
     private Texture2D colormap;
-    
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public Vector2Int dimensionsForGeneration;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public Vector2Int perlinScale;
-    [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
-    public float lacunarity;
-    [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
-    public float frequency;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public float offset;
-    [OnValueChanged(nameof(UpdateGeneration)), MinValue(1)]
-    public int octaves;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public float h;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public float gain;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public bool wrapped;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public bool stretched;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public int seed;
-    [OnValueChanged(nameof(UpdateGeneration)), MinValue(0.001f)]
-    public float stretchPower;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public FractalType fractalType;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public BasisType basisType;
-    [OnValueChanged(nameof(UpdateGeneration))]
-    public InterpolationType interpolationType;
-    [ColorPalette]
-    public Color[] colors;
 
+    public PlanetNoiseGroup noiseGroup;
+    public PlanetNoise noise;
+
+    public MultiColorPaletteGroup paletteGroup;
+    public MultiColorPalette palette;
+    public int detail;
+    public float[] ratios;
+
+    // this exists across planets as loaded meshes from the files, don't want to redo a lot
     private static SavedMeshes _meshes;
 
     private struct SavedMeshes
@@ -69,7 +40,7 @@ public class Planet : MonoBehaviour
         }
     }
     
-    [SerializeField, OnValueChanged("UpdateGeneration"), CustomValueDrawer("MinMaxGenerations")]
+    [SerializeField, CustomValueDrawer("MinMaxGenerations")]
     private int currentGeneration;
 
     [SerializeField]
@@ -119,6 +90,21 @@ public class Planet : MonoBehaviour
             _meshes.AddGeneration(mesh);
         }
     }
+    
+    [ShowInInspector]
+    private void LoadRandomPalette()
+    {
+        palette = paletteGroup.GetRandomPaletteList().GetRandomPalette();
+        palette = Instantiate(palette);
+    }
+
+    [ShowInInspector]
+    private void LoadRandomNoise()
+    {
+        noise = noiseGroup.GetRandomNoiseList().GetRandomNoise();
+        noise = Instantiate(noise);
+        noise.seed = Random.Range(1000, 10000);
+    }
 
     private void SetHeightColor()
     {
@@ -149,7 +135,7 @@ public class Planet : MonoBehaviour
         mesh.vertices = vertices;
         
         mesh.RecalculateNormals();
-        GetComponent<MeshFilter>().mesh = mesh;
+        GetComponent<MeshFilter>().sharedMesh = mesh;
     }
     
     // Start is called before the first frame update
@@ -163,7 +149,20 @@ public class Planet : MonoBehaviour
         // set the color and values
         SetHeightColor();
     }
-    
+
+    [ShowInInspector]
+    private void Initialize()
+    {
+        LoadRandomNoise();
+        LoadRandomPalette();
+        Setup();
+    }
+
+    private void Start()
+    {
+        Initialize();
+    }
+
     [ShowInInspector]
     private void PrintOutMap()
     {
@@ -178,36 +177,43 @@ public class Planet : MonoBehaviour
 
     private void CreateMap()
     {
-        _map = MapGen.CreateMap(dimensionsForGeneration.x, dimensionsForGeneration.y, perlinScale.x, perlinScale.y, frequency, lacunarity, octaves, offset,
-            h, gain, wrapped, seed, stretched, stretchPower, fractalType, basisType, interpolationType, colors);
+        _map = MapGen.CreateMap(noise.dimensionsForGeneration.x, noise.dimensionsForGeneration.y, noise.perlinScale.x, noise.perlinScale.y,
+            noise.frequency, noise.lacunarity, noise.octaves, noise.offset, noise.h, noise.gain, noise.wrapped, noise.seed, noise.stretched, noise.stretchPower,
+            noise.fractalType, noise.basisType, noise.interpolationType, GetColors());
         Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
         //heightmap = (Texture2D) Resources.Load("earth_heightmap");
         //colormap = (Texture2D) Resources.Load("earth_color");
-        // comment
     }
     
     void LoadValues()
     {
         TexturePrint t = _loadMap.GetComponent<TexturePrint>();
-        lacunarity = t.lacunarity;
-        perlinScale = t.perlinScale;
-        dimensionsForGeneration.x = t.width;
-        dimensionsForGeneration.y = t.height;
-        frequency = t.frequency;
-        offset = t.offset;
-        octaves = t.octaves;
-        h = t.h;
-        gain = t.gain;
-        wrapped = t.wrapped;
-        stretched = t.stretched;
-        seed = t.seed;
-        stretchPower = t.stretchPower;
-        fractalType = t.fractalType;
-        basisType = t.basisType;
-        interpolationType = t.interpolationType;
+        noise.lacunarity = t.lacunarity;
+        noise.perlinScale = t.perlinScale;
+        noise.dimensionsForGeneration.x = t.width;
+        noise.dimensionsForGeneration.y = t.height;
+        noise.frequency = t.frequency;
+        noise.offset = t.offset;
+        noise.octaves = t.octaves;
+        noise.h = t.h;
+        noise.gain = t.gain;
+        noise.wrapped = t.wrapped;
+        noise.stretched = t.stretched;
+        noise.seed = t.seed;
+        noise.stretchPower = t.stretchPower;
+        noise.fractalType = t.fractalType;
+        noise.basisType = t.basisType;
+        noise.interpolationType = t.interpolationType;
         UpdateGeneration();
         _loadMap = null;
+    }
+
+    private Color[] GetColors()
+    {
+        palette.ChangeDetailAndRatios(detail, ratios);
+        palette.Generate();
+        return palette.GetColors();
     }
 }
