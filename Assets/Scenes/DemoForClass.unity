@@ -382,7 +382,7 @@ MonoBehaviour:
   noise: {fileID: 0}
   paletteGroup: {fileID: 11400000, guid: c1dacc417a83248a394b15eb435c51c5, type: 2}
   palette: {fileID: 0}
-  currentGeneration: 5
+  currentGeneration: 6
   maxGenerations: 8
 --- !u!23 &1020730441
 MeshRenderer:
@@ -497,7 +497,7 @@ MonoBehaviour:
   noise: {fileID: 11400000, guid: 5196af91101694dafb152147e5926df6, type: 2}
   paletteGroup: {fileID: 11400000, guid: c1dacc417a83248a394b15eb435c51c5, type: 2}
   palette: {fileID: 11400000, guid: 3a8bebaeaf78749f5b85e4a44536b696, type: 2}
-  currentGeneration: 5
+  currentGeneration: 6
   maxGenerations: 8
 --- !u!23 &1319795313
 MeshRenderer:
@@ -921,7 +921,7 @@ MonoBehaviour:
   noise: {fileID: 0}
   paletteGroup: {fileID: 11400000, guid: c1dacc417a83248a394b15eb435c51c5, type: 2}
   palette: {fileID: 0}
-  currentGeneration: 5
+  currentGeneration: 6
   maxGenerations: 8
 --- !u!23 &1457488254
 MeshRenderer:
@@ -1036,7 +1036,7 @@ MonoBehaviour:
   noise: {fileID: 0}
   paletteGroup: {fileID: 11400000, guid: c1dacc417a83248a394b15eb435c51c5, type: 2}
   palette: {fileID: 0}
-  currentGeneration: 5
+  currentGeneration: 6
   maxGenerations: 7
 --- !u!23 &1619043133
 MeshRenderer:
