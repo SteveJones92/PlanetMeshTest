@@ -39,10 +39,11 @@ public class PlanetNoise : ScriptableObject
     [Min(0)]
     public float heightPower = 1;
     [ToggleLeft]
-    // used to toggle whether to use smoothing
-    public bool smoothUpscale = true;
-    [ShowIf("smoothUpscale"), ToggleLeft]
-    public bool autoSmoothDistance = true;
-    [ShowIf("@smoothUpscale && !autoSmoothDistance"), Min(1)]
+    // used to toggle whether to use smoothing, autosmoothing is based on amount upscaled
+    // otherwise it means how many layers around to check for averaging
+    public bool smooth = true;
+    [ShowIf("smooth"), Min(1)]
     public int smoothDistance = 1;
+    [ShowIf("upscale"), Min(0f), MaxValue(1f)]
+    public float resampleRatio = 0.0f;
 }

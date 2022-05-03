@@ -35,10 +35,17 @@ public class Map
         SetHeightMapNoise();
         // upscale based on upscale dimensions
         if (noiseSettings.upscale) Upscale();
-        // TODO can post process the noise map here, for example adding craters or volcanos
+        
+        // TODO can post process the noise map here, for example adding craters or volcanos, smoothing
+        if (noiseSettings.smooth) Smooth(); // warning, expensive
+        
+        // before moving on, remap the result to 0-1 scale
+        Remap();
+        
         // create the color map from the palette, after any noise modifications have happened
         SetColors();
         // TODO can post process color map here for better looks (like using the heatmap and other options)
+        // followup smoothing to replace current smoothing as it was a nice option
     }
 
     private float heightMapValue;
@@ -117,17 +124,23 @@ public class Map
                  // set the heightmap color
                  Heightmap[x + y * Width] = new Color(grayValue, grayValue, grayValue);
             }
-            
+        }
+         //Debug.Log(Time.realtimeSinceStartup - time);
+    }
+
+    private void Remap()
+    {
+        for (var y = 0; y < Height; y++)
+        {
             // go through and remap the values to 0-1 range
             for (var x = 0; x < Width; x++)
             {
-                 float grayValue = Heightmap[x + y * Width].r;
-                 grayValue = ( grayValue - minValue ) / ( maxValue - minValue );
-                 grayValue = Mathf.Pow(grayValue, _noiseSettings.powerRule);
-                 Heightmap[x + y * Width] = new Color(grayValue, grayValue, grayValue);
+                float grayValue = Heightmap[x + y * Width].r;
+                grayValue = (grayValue - minValue) / (maxValue - minValue);
+                grayValue = Mathf.Pow(grayValue, _noiseSettings.powerRule);
+                Heightmap[x + y * Width] = new Color(grayValue, grayValue, grayValue);
             }
         }
-         //Debug.Log(Time.realtimeSinceStartup - time);
     }
 
     // upscale image into a larger resolution
@@ -138,36 +151,36 @@ public class Map
         // upscaling should be larger for both
         if (newX <= Width || newY <= Height) return;
 
-        // larger upscales sample more points?
-        int xScale = _noiseSettings.smoothDistance;
-        int yScale = _noiseSettings.smoothDistance;
-
-        if (_noiseSettings.autoSmoothDistance)
-        {
-            xScale = Mathf.FloorToInt((float) newX / Width);                    // TODO
-            yScale = Mathf.FloorToInt((float) newY / Height);
-        }
-        
         // heightmap
         Color[] nHeightMap = new Color[newX * newY];
 
+        float ratioOldNewX = (float)Width / newX;
+        float ratioOldNewY = (float)Height / newY;
+        float ratio = Mathf.Sqrt((1 / ratioOldNewX) * (1 / ratioOldNewY));
+        
         for (int i = 0; i < newX; i++)
         {
             for (int j = 0; j < newY; j++)
             {
                 // remap new coordinates to old for stretched sampling
-                int oldX = (i * Width) / newX;
-                int oldY = (j * Height) / newY;
-                
-                // if we only use the point at that position, we get the same image at a larger resolution
-                // averaging smooths
-                if (_noiseSettings.smoothUpscale)
-                {
-                    nHeightMap[i + j * newX] = Smooth(oldX, oldY, xScale, yScale);
-                }
-                else
+                float oldXf = i * ratioOldNewX;
+                float oldYf = j * ratioOldNewY;
+                int oldX = (int)oldXf;
+                int oldY = (int)oldYf;
+
+                // old point, use same value
+                if (oldXf == oldX && oldYf == oldY)
                 {
                     nHeightMap[i + j * newX] = Heightmap[oldX + oldY * Width];
+                }
+                else if (Random.Range(0f, 1f) < _noiseSettings.resampleRatio)
+                {
+                    nHeightMap[i + j * newX] = ResampleNoise(i, j, ratio);
+                }
+                // if not, get the proper average of the points it would be between
+                else
+                {
+                    nHeightMap[i + j * newX] = UpscaleGetAverage(oldX, oldY);
                 }
             }
         }
@@ -178,23 +191,93 @@ public class Map
         Heightmap = nHeightMap;
     }
 
-    private Color Smooth(int x, int y, int xScale, int yScale)
+    private Color ResampleNoise(int x, int y, float ratio)
     {
-        float avg = 0;
-        int count = 0;
-        for (int i = x - xScale; i <= x + xScale; i++)
-        {
-            for (int j = y - yScale; j <= y + yScale; j++)
-            {
-                if (i < 0 || j < 0 || i >= Width || j >= Height) continue;
+        int width = _noiseSettings.upscaleTo.x;
+        int height = _noiseSettings.upscaleTo.y;
+        int centerX = width / 2;
+        int centerY = height / 2;
+        float r = width / (2f * Mathf.PI);
+        float longitudeR, newX, newY, newZ;
+        float latitude = (float)(y - centerY) / (float)height;
+        longitudeR = r * Mathf.Cos(latitude * Mathf.PI);
+        newY = Mathf.Sin(latitude*Mathf.PI)*r;
+        float longitude = (float)(x - centerX) / (float)centerX;
+        newX = Mathf.Cos(longitude * Mathf.PI) * longitudeR + _noiseSettings.offset;
+        newZ = Mathf.Sin(longitude * Mathf.PI) * longitudeR + _noiseSettings.offset;
+        float grayValue = (float) _noiseFunction.Get(
+            (newX + _noiseSettings.offset) / (float)(_noiseSettings.perlinScale * ratio), 
+            (newY + _noiseSettings.offset) / (float)(_noiseSettings.perlinScale * ratio), 
+            (newZ + _noiseSettings.offset) / (float)(_noiseSettings.perlinScale * ratio));
 
-                avg += Heightmap[i + j * Width].r;
-                count++;
-            }
+        
+        // make sure to save the min and max values for remapping later
+        if (grayValue < minValue) minValue = grayValue;
+        if (grayValue > maxValue) maxValue = grayValue;
+        
+        return new Color(grayValue, grayValue, grayValue);
+    }
+    
+
+    // upscale averages around where the point would be between
+    // no diagonals are counted, but could improve the output
+    private Color UpscaleGetAverage(int oldX, int oldY)
+    {
+        int point = oldX + oldY * Width;
+        // cover edge case of last item
+        if (point == Heightmap.Length - 1) return Heightmap[point];
+        int pointNext = point + 1;
+        int pointAbove = oldX + (oldY - 1) * Width;
+        int pointAboveNext = pointAbove + 1;
+        int pointBelow = oldX + (oldY + 1) * Width;
+        int pointBelowNext = pointBelow + 1;
+        
+        int count = 2;
+        float avg = (Heightmap[point].r + Heightmap[pointNext].r);
+
+        if (pointAbove > 0)
+        {
+            avg += (Heightmap[pointAbove].r + Heightmap[pointAboveNext].r) / 2f;
+            count++;
+        }
+
+        if (pointBelow < Heightmap.Length - 1)
+        {
+            avg += (Heightmap[pointBelow].r + Heightmap[pointBelowNext].r) / 2f;
+            count++;
         }
 
         avg /= count;
         return new Color(avg, avg, avg);
+    }
+    
+    private void Smooth()
+    {
+        //larger upscales sample more points?
+        int smoothAmount = _noiseSettings.smoothDistance;
+
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                float avg = 0;
+                int count = 0;
+                
+                for (int i = x - smoothAmount; i <= x + smoothAmount; i++)
+                {
+                    for (int j = y - smoothAmount; j <= y + smoothAmount; j++)
+                    {
+                        if (i < 0 || j < 0 || i >= Width || j >= Height) continue;
+
+                        avg += Heightmap[i + j * Width].r;
+                        count++;
+                    }
+                }
+    
+                avg /= count;
+                Heightmap[x + y * Width] = new Color(avg, avg, avg);
+            }
+        }
     }
 
     // use the current map to create a texture for the heightmap and colormap
