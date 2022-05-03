@@ -28,6 +28,7 @@ MonoBehaviour:
   interpolationType: 1
   powerRule: 0.5
   heightScale: 14
-  smoothUpscale: 0
-  autoSmoothDistance: 0
+  heightPower: 1
+  smooth: 1
   smoothDistance: 10
+  resampleRatio: 0

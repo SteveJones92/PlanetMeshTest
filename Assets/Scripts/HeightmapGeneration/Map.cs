@@ -44,8 +44,8 @@ public class Map
         
         // create the color map from the palette, after any noise modifications have happened
         SetColors();
+        
         // TODO can post process color map here for better looks (like using the heatmap and other options)
-        // followup smoothing to replace current smoothing as it was a nice option
     }
 
     private float heightMapValue;
@@ -253,6 +253,7 @@ public class Map
     
     private void Smooth()
     {
+        Color[] nHeightmap = new Color[Heightmap.Length];
         //larger upscales sample more points?
         int smoothAmount = _noiseSettings.smoothDistance;
 
@@ -275,9 +276,11 @@ public class Map
                 }
     
                 avg /= count;
-                Heightmap[x + y * Width] = new Color(avg, avg, avg);
+                nHeightmap[x + y * Width] = new Color(avg, avg, avg);
             }
         }
+
+        Heightmap = nHeightmap;
     }
 
     // use the current map to create a texture for the heightmap and colormap

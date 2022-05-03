@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71fdfe66b4ae2554fa497d5168053c93, type: 3}
+  m_Name: m_Six
+  m_EditorClassIdentifier: 
+  inputColors:
+  - color: {r: 0.31132078, g: 0.010298456, b: 0.0014684978, a: 0}
+    degreesHueShift: 10
+    variationsToGenerate: 6
+  - color: {r: 0.990566, g: 0.44619533, b: 0.13550198, a: 0}
+    degreesHueShift: 10
+    variationsToGenerate: 1
+  - color: {r: 0.8396226, g: 0.63939816, b: 0.47921857, a: 0}
+    degreesHueShift: 10
+    variationsToGenerate: 9
+  - color: {r: 0.3995639, g: 0.6886792, b: 0.6767569, a: 0}
+    degreesHueShift: 10
+    variationsToGenerate: 5
+  - color: {r: 1, g: 1, b: 1, a: 0}
+    degreesHueShift: 0
+    variationsToGenerate: 1
+  randomRatios: 1
+  ratios:
+  - 0.26027945
+  - 0.059081838
+  - 0.37045908
+  - 0.23552895
+  - 0.0746507
+  detail: 25
+  outputColors:
+  - {r: 0.11674529, g: 0.0005506936, b: 0.0049857562, a: 1}
+  - {r: 0.15566039, g: 0.010313442, b: 0.00073425815, a: 1}
+  - {r: 0.19457549, g: 0.0009178227, b: 0.011537264, a: 1}
+  - {r: 0.23349059, g: 0.0011013872, b: 0.002225185, a: 1}
+  - {r: 0.27240568, g: 0.03160456, b: 0.0012849518, a: 1}
+  - {r: 0.31132078, g: 0.0361195, b: 0.0014685163, a: 1}
+  - {r: 0.990566, g: 0.37494, b: 0.13550198, a: 1}
+  - {r: 0.2798742, g: 0.21113048, b: 0.15973952, a: 1}
+  - {r: 0.34984276, g: 0.2689187, b: 0.1996744, a: 1}
+  - {r: 0.4198113, g: 0.3287092, b: 0.23960929, a: 1}
+  - {r: 0.48977983, g: 0.34495082, b: 0.27954414, a: 1}
+  - {r: 0.5597484, g: 0.4382789, b: 0.31947905, a: 1}
+  - {r: 0.629717, g: 0.5020739, b: 0.35941395, a: 1}
+  - {r: 0.6996856, g: 0.49278694, b: 0.39934883, a: 1}
+  - {r: 0.7696541, g: 0.586115, b: 0.4392837, a: 1}
+  - {r: 0.8396226, g: 0.6694318, b: 0.47921857, a: 1}
+  - {r: 0.15982556, g: 0.2744583, b: 0.2754717, a: 1}
+  - {r: 0.21976015, g: 0.37877357, b: 0.3483643, a: 1}
+  - {r: 0.27969477, g: 0.48207548, b: 0.43999973, a: 1}
+  - {r: 0.33962932, g: 0.57093644, b: 0.58537734, a: 1}
+  - {r: 0.3995639, g: 0.6886792, b: 0.6863941, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
