@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: Four
   m_EditorClassIdentifier: 
   dimensionsForGeneration: {x: 600, y: 300}
-  perlinScale: {x: 31, y: 31}
-  lacunarity: 3.05
-  frequency: 1.49
-  offset: 0.9
-  octaves: 3
+  upscaleTo: {x: 1199, y: 599}
+  perlinScale: {x: 226, y: 226}
+  lacunarity: 3.26
+  frequency: 1.09
+  offset: 1.57
+  octaves: 4
   h: 0
   gain: 0
-  wrapped: 0
-  stretched: 0
   seed: 0
-  stretchPower: 0
-  fractalType: 1
-  basisType: 1
+  fractalType: 3
+  basisType: 3
   interpolationType: 3
+  powerRule: 2
+  heightScale: 1

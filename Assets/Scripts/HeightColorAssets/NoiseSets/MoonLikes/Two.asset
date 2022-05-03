@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dimensionsForGeneration: {x: 600, y: 300}
   upscaleTo: {x: 1199, y: 599}
-  perlinScale: {x: 178, y: 178}
-  lacunarity: 2.41
-  frequency: 0.76
-  offset: 0
-  octaves: 5
-  h: 0
-  gain: 0
-  seed: 1
+  perlinScale: {x: 163, y: 78}
+  lacunarity: 4.71
+  frequency: 0.78
+  offset: 0.27
+  octaves: 4
+  h: 0.07
+  gain: 0.03
+  seed: 0
   fractalType: 2
   basisType: 3
   interpolationType: 3
-  powerRule: 3
-  heightScale: 2
+  powerRule: 0.5
+  heightScale: 4

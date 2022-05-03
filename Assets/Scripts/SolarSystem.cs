@@ -1,51 +1,53 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class SolarSystem : MonoBehaviour
 {
     private List<Transform> objs;
     private List<int> rotations;
+    private List<float> distances;
     
     // Start is called before the first frame update
     void Start()
     {
         objs = new List<Transform>();
         rotations = new List<int>();
+        distances = new List<float>();
         foreach (Transform child in transform)
         {
             if (child.GetComponent<Planet>() != null)
             {
                 objs.Add(child);
                 rotations.Add(Random.Range(3, 13));
+                distances.Add( (30000f / Vector3.Distance(child.position, transform.position)));
             }
         }
     }
 
     private void OnPreload(InputValue inp)
     {
-        //Debug.Log("preload");
         if (_asyncOperation == null)
         {
-            //Debug.Log("Started Scene Preloading");
-
             // Start scene preloading.
-            this.StartCoroutine(this.LoadSceneAsyncProcess(sceneName: this._sceneName));
+            this._asyncOperation = SceneManager.LoadSceneAsync(_sceneName);
+            //this.StartCoroutine(this.LoadSceneAsyncProcess(sceneName: this._sceneName));
+            this._asyncOperation.allowSceneActivation = false;
         }
+        // Don't let the Scene activate until you allow it to.
+        //this._asyncOperation.allowSceneActivation = false;
     }
 
     private void OnActivate(InputValue inp)
     {
-        //Debug.Log("activate");
-        // Press the space key to activate the Scene.
+        // Press the + key to activate the Scene.
         if (_asyncOperation != null)
         {
-            //Debug.Log("Allowed Scene Activation");
-
             this._asyncOperation.allowSceneActivation = true;
-            //SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene());
         }
     }
 
@@ -55,14 +57,19 @@ public class SolarSystem : MonoBehaviour
         int i = 0;
         foreach (var obj in objs)
         {
-            obj.RotateAround(transform.position, transform.up, (40000f / Vector3.Distance(obj.position, transform.position)) * Time.deltaTime);
-            obj.Rotate(transform.up, rotations[i] * Time.deltaTime);
+            if (Random.Range(0f, 1f) > 0.5f)
+            {
+                obj.RotateAround(transform.position, transform.up, distances[i] * Time.deltaTime);
+            }
+            else
+            {
+                obj.Rotate(transform.up, rotations[i] * Time.deltaTime);
+            }
             i++;
         }
     }
     
-    [SerializeField] private string _sceneName = "DemoForClass";
-    public string _SceneName => this._sceneName;
+    [SerializeField] private string _sceneName = "DemoForClass1";
 
     private AsyncOperation _asyncOperation;
 
@@ -74,11 +81,10 @@ public class SolarSystem : MonoBehaviour
         // Don't let the Scene activate until you allow it to.
         this._asyncOperation.allowSceneActivation = false;
 
-        while (!this._asyncOperation.isDone)
-        {
-            Debug.Log($"[scene]:{sceneName} [load progress]: {this._asyncOperation.progress}");
-
-            yield return null;
-        }
+        //while (!this._asyncOperation.isDone)
+        //{
+            //yield return null;
+        //}
+        yield return null;
     }
 }

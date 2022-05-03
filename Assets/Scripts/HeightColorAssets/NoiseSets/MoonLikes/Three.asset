@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
-  m_Name: Two
+  m_Name: Three
   m_EditorClassIdentifier: 
   dimensionsForGeneration: {x: 600, y: 300}
   upscaleTo: {x: 1199, y: 599}
-  perlinScale: {x: 178, y: 178}
-  lacunarity: 2.41
-  frequency: 0.76
+  perlinScale: {x: 248, y: 119}
+  lacunarity: 5
+  frequency: 3.49
   offset: 0
-  octaves: 5
-  h: 0
-  gain: 0
-  seed: 1
+  octaves: 4
+  h: 0.07
+  gain: 0.03
+  seed: 0
   fractalType: 2
   basisType: 3
   interpolationType: 3
-  powerRule: 3
+  powerRule: 2
   heightScale: 2

@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: Five
   m_EditorClassIdentifier: 
   inputColors:
-  - color: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 0}
+  - color: {r: 0.8773585, g: 0.8773585, b: 0.8773585, a: 0}
     degreesHueShift: 5
     variationsToGenerate: 0
-  - color: {r: 0.40530434, g: 0.41032484, b: 0.41509432, a: 1}
+  - color: {r: 0.14373444, g: 0.28690526, b: 0.3584906, a: 1}
     degreesHueShift: 5
     variationsToGenerate: 0
-  - color: {r: 0.6384834, g: 0.641393, b: 0.6415094, a: 0}
+  - color: {r: 0.10760006, g: 0.2735849, b: 0.050329305, a: 0}
     degreesHueShift: 3
     variationsToGenerate: 0
-  - color: {r: 0.8867924, g: 0.8867924, b: 0.8867924, a: 0}
+  - color: {r: 0.19195881, g: 0.3018868, b: 0.17799929, a: 0}
     degreesHueShift: 3
     variationsToGenerate: 0
   randomRatios: 1
@@ -31,7 +31,7 @@ MonoBehaviour:
   - 0.34843206
   - 0.28687572
   - 0.19396052
-  detail: 100
+  detail: 200
   outputColors:
   - {r: 0, g: 0.07847631, b: 1, a: 1}
   - {r: 0.96521556, g: 1, b: 0, a: 1}

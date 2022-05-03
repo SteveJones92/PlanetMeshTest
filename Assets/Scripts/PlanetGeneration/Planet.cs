@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -130,7 +131,7 @@ public class Planet : MonoBehaviour
         {
             Color heightClr = heightmap.GetPixel((int)((uvs[i].x) * heightmap.width), (int)((1 - uvs[i].y) * heightmap.height));
             Color actualClr = colormap.GetPixel((int)((uvs[i].x) * colormap.width), (int)((1 - uvs[i].y) * colormap.height));
-            float he = heightClr.r * 0.025f * scale;
+            float he = heightClr.r * 0.025f * noise.heightScale;
             Vector3 v = vertices[i].normalized;
             vertices[i] = new Vector3(vertices[i].x + v.x * he, vertices[i].y + v.y * he, vertices[i].z + + v.z * he );
             vertexColors[i] = actualClr;
@@ -175,9 +176,9 @@ public class Planet : MonoBehaviour
 
     private void CreateMap()
     {
-        _map = MapGen.CreateMap(noise.dimensionsForGeneration.x, noise.dimensionsForGeneration.y, noise.perlinScale.x, noise.perlinScale.y,
-            noise.frequency, noise.lacunarity, noise.octaves, noise.offset, noise.h, noise.gain, noise.seed,
-            noise.fractalType, noise.basisType, noise.interpolationType, GetColors());
+        _map = MapGen.CreateMap(noise.dimensionsForGeneration.x, noise.dimensionsForGeneration.y, noise.upscaleTo.x, noise.upscaleTo.y,
+            noise.perlinScale.x, noise.perlinScale.y, noise.frequency, noise.lacunarity, noise.octaves, 
+            noise.powerRule, noise.offset, noise.h, noise.gain, noise.seed, noise.fractalType, noise.basisType, noise.interpolationType, GetColors());
         Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];

@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlanetNoise : ScriptableObject
 {
     public Vector2Int dimensionsForGeneration;
+    public Vector2Int upscaleTo;
     public Vector2Int perlinScale;
     public float lacunarity;
     public float frequency;
@@ -17,6 +18,7 @@ public class PlanetNoise : ScriptableObject
     public FractalType fractalType;
     public BasisType basisType;
     public InterpolationType interpolationType;
+    public float powerRule = 1;
     [Min(1)]
     public float heightScale = 1;
 }

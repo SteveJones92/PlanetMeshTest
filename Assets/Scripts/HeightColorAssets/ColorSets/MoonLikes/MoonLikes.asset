@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8599c5c4605f1422b9160c02b622ce12, type: 3}
+  m_Name: MoonLikes
+  m_EditorClassIdentifier: 
+  list:
+  - {fileID: 11400000, guid: 5b7ed5d9ff73842aaa1e7a432641d0b1, type: 2}
+  - {fileID: 11400000, guid: eebc816fb3533452c9747d731f519e2b, type: 2}
+  - {fileID: 11400000, guid: b4137b8be2e5245d794cb734a04c1dfe, type: 2}
+  - {fileID: 11400000, guid: 905fb724bf6674e0d829eadf63c164be, type: 2}
+  - {fileID: 11400000, guid: d45be481d61da4e86aa6efb1a250b3ea, type: 2}

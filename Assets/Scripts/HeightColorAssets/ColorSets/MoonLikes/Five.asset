@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71fdfe66b4ae2554fa497d5168053c93, type: 3}
+  m_Name: Five
+  m_EditorClassIdentifier: 
+  inputColors:
+  - color: {r: 0.22643623, g: 0.1761748, b: 0.3490566, a: 0}
+    degreesHueShift: 0
+    variationsToGenerate: 50
+  - color: {r: 0.11641154, g: 0.18009777, b: 0.2264151, a: 0}
+    degreesHueShift: 0
+    variationsToGenerate: 50
+  - color: {r: 0.38679248, g: 0.3281016, b: 0.28279638, a: 0}
+    degreesHueShift: 0
+    variationsToGenerate: 50
+  - color: {r: 0.41985583, g: 0.8018868, b: 0.78278524, a: 0}
+    degreesHueShift: 0
+    variationsToGenerate: 50
+  randomRatios: 1
+  ratios:
+  - 0.25
+  - 0.25
+  - 0.25
+  - 0.25
+  detail: 200
+  outputColors: []
