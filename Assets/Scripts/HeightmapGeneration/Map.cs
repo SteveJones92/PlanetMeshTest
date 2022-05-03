@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.CompilerServices;
 using TinkerWorX.AccidentalNoiseLibrary;
 using Unity.Collections;
 using Unity.Jobs;
@@ -6,159 +7,178 @@ using UnityEngine;
 
 public class Map
 {
-    public int Width { get; set; }
-    public int Height { get; set; }
+    // current width - either reg or upscaled resolution
+    private int Width;
+    // current height - either reg or upscaled resolution
+    private int Height;
+    
+    private PlanetNoise _noiseSettings;
+    private MultiColorPalette _colorSettings;
+    
     // make sure color is between black and white
     public Color[] Heightmap { get; set; }
     // actual colors
     public Color[] ColorMap { get; set; }
-
+    
     private float minValue = float.MaxValue;
     private float maxValue = float.MinValue;
 
-    public Map(int width, int height)
-    {
-        this.Width = width;
-        this.Height = height;
-        Heightmap = new Color[width * height];
-        ColorMap = new Color[width * height];
-    }
-    
-    public struct ColorJob : IJobParallelFor
-    {
-        public NativeArray<Color> heightmap;
-        [ReadOnly]
-        public NativeArray<Color> colors;
-        public NativeArray<Color> result;
-        public float ratio;
+    // save the fractal setup for resampling
+    private ImplicitFractal _noiseFunction;
 
-        public void Execute(int index)
-        {
-            float heightMapValue = heightmap[index].r;
-            int idx = (int) (heightMapValue / ratio);
-            if (idx >= colors.Length) idx = colors.Length - 1;
-            if (idx < 0) idx = 0;
-            result[index] = colors[idx];
-        }
+    public Map(PlanetNoise noiseSettings, MultiColorPalette colorSettings)
+    {
+        this._noiseSettings = noiseSettings;
+        this._colorSettings = colorSettings;
+        
+        // generate the initial non-upscaled heightmap
+        SetHeightMapNoise();
+        // upscale based on upscale dimensions
+        if (noiseSettings.upscale) Upscale();
+        // TODO can post process the noise map here, for example adding craters or volcanos
+        // create the color map from the palette, after any noise modifications have happened
+        SetColors();
+        // TODO can post process color map here for better looks (like using the heatmap and other options)
     }
-    
+
     private float heightMapValue;
     private int idx;
-    public void SetColors(Color[] colors)
+    public void SetColors()
     {
-        //float time = Time.realtimeSinceStartup;
-        // NativeArray<Color> nColors = new NativeArray<Color>(colors.Length, Allocator.TempJob);
-        // nColors.CopyFrom(colors);
-        // NativeArray<Color> nHeightmap = new NativeArray<Color>(Heightmap.Length, Allocator.TempJob);
-        // nHeightmap.CopyFrom(Heightmap);
-        // NativeArray<Color> result = new NativeArray<Color>(ColorMap.Length, Allocator.TempJob);
-        //
-        // ColorJob job = new ColorJob();
-        // job.result = result;
-        // job.ratio = 1f / colors.Length;
-        // job.colors = nColors;
-        // job.heightmap = nHeightmap;
-        //
-        // // Schedule the job with one Execute per index in the results array and only 1 item per processing batch
-        // JobHandle handle = job.Schedule(result.Length, 64);
-        //
-        // handle.Complete();
-        // ColorMap = result.ToArray();
-        // nColors.Dispose();
-        // nHeightmap.Dispose();
-        // result.Dispose();
-
+        // colormap should match width and height
+        ColorMap = new Color[Width * Height];
+        // ensure the palette output colors are generated
+        _colorSettings.Generate();
+        // get the output color list from the generation
+        Color[] colors = _colorSettings.GetColors();
+        // set up a ratio for use in indexing based on the heightmap values
         float ratio = 1f / colors.Length;
         
+        // go through each item in the colormap and set it based on heightmap value
         for (var x = 0; x < ColorMap.Length; x++)
         {
+            // get one of the gray values
             heightMapValue = Heightmap[x].r;
+            // index based on value 0-1, to where that would be in the color list, using ratio
             idx = (int) (heightMapValue / ratio);
+            // ensure not out of bounds, in case heightmap isnt exactly 0-1
             if (idx >= colors.Length) idx = colors.Length - 1;
             if (idx < 0) idx = 0;
             ColorMap[x] = colors[idx];
         }
-        //Debug.Log(Time.realtimeSinceStartup - time);
     }
 
-    public void SetHeightMapNoise(int perlinXScale, int perlinYScale, float frequency, float lacunarity, int octaves, float powerRule,
-        float offset, float h, float gain, int seed, FractalType fractalType, BasisType basisType, InterpolationType interpolationType)
+    // create the heightmap based on given dimensions
+    private void SetHeightMapNoise()
     {
-        float time = Time.realtimeSinceStartup;
-        ImplicitFractal noiseFunction = new ImplicitFractal(fractalType, basisType, interpolationType);
-        noiseFunction.Frequency = frequency;
-        noiseFunction.Lacunarity = lacunarity;
-        noiseFunction.Octaves = octaves;
-        noiseFunction.Offset = offset;
-        noiseFunction.H = h;
-        noiseFunction.Gain = gain;
-        noiseFunction.Seed = seed;
+        //float time = Time.realtimeSinceStartup;
+        
+        // create the noise function based on settings
+        _noiseFunction = new ImplicitFractal(_noiseSettings.fractalType, _noiseSettings.basisType, _noiseSettings.interpolationType);
+        _noiseFunction.Frequency = _noiseSettings.frequency;
+        _noiseFunction.Lacunarity = _noiseSettings.lacunarity;
+        _noiseFunction.Octaves = _noiseSettings.octaves;
+        _noiseFunction.Offset = _noiseSettings.offset;
+        _noiseFunction.H = _noiseSettings.h;
+        _noiseFunction.Gain = _noiseSettings.gain;
+        _noiseFunction.Seed = _noiseSettings.seed;
 
-        int centerx = Width/2;
-        int centery = Height/2;
-        float r = Width/ (2f*Mathf.PI);
-         float longitude_r, newX, newY, newZ;
-         for (var y = 0; y < Height; y++)
-         {
-             float latitude = (float)(y - centery) / (float)Height;
-             longitude_r = r*Mathf.Cos(latitude * Mathf.PI);
-             newY = Mathf.Sin(latitude*Mathf.PI)*r;
-             for (var x = 0; x < Width; x++)
-             {
-                 float longitude = (float)(x - centerx) / (float)centerx;
-                 newX = Mathf.Cos(longitude * Mathf.PI) * longitude_r + offset;
-                 newZ = Mathf.Sin(longitude * Mathf.PI) * longitude_r + offset;
-        
-        
-                 float grayValue = (float) noiseFunction.Get((newX + offset) / (float)perlinXScale, (newY + offset) / (float)perlinXScale, (newZ + offset) / (float)perlinXScale);
+        // initialize heightmap for dimensions
+        Heightmap = new Color[_noiseSettings.dimensionsForGeneration.x * _noiseSettings.dimensionsForGeneration.y];
+        Width = _noiseSettings.dimensionsForGeneration.x;
+        Height = _noiseSettings.dimensionsForGeneration.y;
+
+        int centerX = Width / 2;
+        int centerY = Height / 2;
+        float r = Width / (2f * Mathf.PI);
+        float longitudeR, newX, newY, newZ;
+        for (var y = 0; y < Height; y++)
+        {
+            float latitude = (float)(y - centerY) / (float)Height;
+            longitudeR = r * Mathf.Cos(latitude * Mathf.PI);
+            newY = Mathf.Sin(latitude*Mathf.PI)*r;
+            for (var x = 0; x < Width; x++)
+            {
+                 float longitude = (float)(x - centerX) / (float)centerX;
+                 newX = Mathf.Cos(longitude * Mathf.PI) * longitudeR + _noiseSettings.offset;
+                 newZ = Mathf.Sin(longitude * Mathf.PI) * longitudeR + _noiseSettings.offset;
+
+
+                 // get the noise at each point, all the calculations were for 3D noise sampling on a sphere
+                 float grayValue = (float) _noiseFunction.Get(
+                     (newX + _noiseSettings.offset) / (float)_noiseSettings.perlinScale, 
+                     (newY + _noiseSettings.offset) / (float)_noiseSettings.perlinScale, 
+                     (newZ + _noiseSettings.offset) / (float)_noiseSettings.perlinScale);
+                 
+                 // make sure to save the min and max values for remapping later
                  if (grayValue < minValue) minValue = grayValue;
                  if (grayValue > maxValue) maxValue = grayValue;
+                 
+                 // set the heightmap color
                  Heightmap[x + y * Width] = new Color(grayValue, grayValue, grayValue);
-             }
-             for (var x = 0; x < Width; x++)
-             {
+            }
+            
+            // go through and remap the values to 0-1 range
+            for (var x = 0; x < Width; x++)
+            {
                  float grayValue = Heightmap[x + y * Width].r;
                  grayValue = ( grayValue - minValue ) / ( maxValue - minValue );
-                 grayValue = Mathf.Pow(grayValue, powerRule);
+                 grayValue = Mathf.Pow(grayValue, _noiseSettings.powerRule);
                  Heightmap[x + y * Width] = new Color(grayValue, grayValue, grayValue);
-             }
-         }
-         Debug.Log(Time.realtimeSinceStartup - time);
+            }
+        }
+         //Debug.Log(Time.realtimeSinceStartup - time);
     }
 
-    public void Upscale(int x, int y)
+    // upscale image into a larger resolution
+    public void Upscale()
     {
+        int newX = _noiseSettings.upscaleTo.x;
+        int newY = _noiseSettings.upscaleTo.y;
         // upscaling should be larger for both
-        if (x <= Width || y <= Height) return;
-        Debug.Log(x);
-        Debug.Log(y);
-        
-        // how many left and right to check for avg
-        int xScale = Mathf.FloorToInt((float)x / Width);
-        // how many up or down to check for avg
-        int yScale = Mathf.FloorToInt((float)y / Height);
-        // heightmap
-        Color[] nHeightMap = new Color[x * y];
+        if (newX <= Width || newY <= Height) return;
 
-        for (int i = 0; i < x; i++)
+        // larger upscales sample more points?
+        int xScale = _noiseSettings.smoothDistance;
+        int yScale = _noiseSettings.smoothDistance;
+
+        if (_noiseSettings.autoSmoothDistance)
         {
-            for (int j = 0; j < y; j++)
+            xScale = Mathf.FloorToInt((float) newX / Width);                    // TODO
+            yScale = Mathf.FloorToInt((float) newY / Height);
+        }
+        
+        // heightmap
+        Color[] nHeightMap = new Color[newX * newY];
+
+        for (int i = 0; i < newX; i++)
+        {
+            for (int j = 0; j < newY; j++)
             {
-                int oldX = (i * Width) / x;
-                int oldY = (j * Height) / y;
+                // remap new coordinates to old for stretched sampling
+                int oldX = (i * Width) / newX;
+                int oldY = (j * Height) / newY;
                 
-                nHeightMap[i + j * x] = Average(oldX, oldY, xScale, yScale);
+                // if we only use the point at that position, we get the same image at a larger resolution
+                // averaging smooths
+                if (_noiseSettings.smoothUpscale)
+                {
+                    nHeightMap[i + j * newX] = Smooth(oldX, oldY, xScale, yScale);
+                }
+                else
+                {
+                    nHeightMap[i + j * newX] = Heightmap[oldX + oldY * Width];
+                }
             }
         }
 
-        Width = x;
-        Height = y;
+        // reset width and height to new, and Heightmap to fixed resolution
+        Width = newX;
+        Height = newY;
         Heightmap = nHeightMap;
-        // colormap
-        ColorMap = new Color[x * y];
     }
 
-    private Color Average(int x, int y, int xScale, int yScale)
+    private Color Smooth(int x, int y, int xScale, int yScale)
     {
         float avg = 0;
         int count = 0;
@@ -180,7 +200,7 @@ public class Map
     // use the current map to create a texture for the heightmap and colormap
     public Texture2D[] GetTextures()
     {
-        var textureHeight = new Texture2D( Width,  Height);
+        var textureHeight = new Texture2D(Width,  Height);
         var textureColor = new Texture2D(Width, Height);
         textureHeight.SetPixels(Heightmap);
         textureColor.SetPixels(ColorMap);
@@ -193,7 +213,7 @@ public class Map
         return new[] {textureHeight, textureColor};
     }
     
-    // output
+    // output the heightmap and colormap as png images
     public void CreateTextureImages(string name)
     {
         var texs = GetTextures();

@@ -87,15 +87,7 @@ public class MultiColorPalette : ScriptableObject
 
     public Color[] GetColors()
     {
-        Color[] colors = new Color[outputColors.Count];
-        int i = 0;
-        foreach (var color in outputColors)
-        {
-            colors[i] = color;
-            i++;
-        }
-
-        return colors;
+        return outputColors.ToArray();
     }
 
     private void BuildListOfColorVariations(ProceduralColor inputColor)

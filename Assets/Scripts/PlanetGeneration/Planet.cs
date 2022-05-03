@@ -16,12 +16,16 @@ public class Planet : MonoBehaviour
     private Texture2D heightmap;
     private Texture2D colormap;
 
+    [InlineEditor(InlineEditorModes.FullEditor)]
     public NoiseColorGroup mapLists;
-
+    [InlineEditor(InlineEditorModes.FullEditor)]
     public PlanetNoiseGroup noiseGroup;
+    [InlineEditor(InlineEditorModes.FullEditor)]
     public PlanetNoise noise;
 
+    [InlineEditor(InlineEditorModes.FullEditor)]
     public MultiColorPaletteGroup paletteGroup;
+    [InlineEditor(InlineEditorModes.FullEditor)]
     public MultiColorPalette palette;
 
     // this exists across planets as loaded meshes from the files, don't want to redo a lot
@@ -131,7 +135,7 @@ public class Planet : MonoBehaviour
         {
             Color heightClr = heightmap.GetPixel((int)((uvs[i].x) * heightmap.width), (int)((1 - uvs[i].y) * heightmap.height));
             Color actualClr = colormap.GetPixel((int)((uvs[i].x) * colormap.width), (int)((1 - uvs[i].y) * colormap.height));
-            float he = heightClr.r * 0.025f * noise.heightScale;
+            float he = heightClr.r * (0.025f * Mathf.Pow(noise.heightScale, noise.heightPower));
             Vector3 v = vertices[i].normalized;
             vertices[i] = new Vector3(vertices[i].x + v.x * he, vertices[i].y + v.y * he, vertices[i].z + + v.z * he );
             vertexColors[i] = actualClr;
@@ -176,19 +180,11 @@ public class Planet : MonoBehaviour
 
     private void CreateMap()
     {
-        _map = MapGen.CreateMap(noise.dimensionsForGeneration.x, noise.dimensionsForGeneration.y, noise.upscaleTo.x, noise.upscaleTo.y,
-            noise.perlinScale.x, noise.perlinScale.y, noise.frequency, noise.lacunarity, noise.octaves, 
-            noise.powerRule, noise.offset, noise.h, noise.gain, noise.seed, noise.fractalType, noise.basisType, noise.interpolationType, GetColors());
+        _map = new Map(noise, palette);
         Texture2D[] texs = _map.GetTextures();
         heightmap = texs[0];
         colormap = texs[1];
         //heightmap = (Texture2D) Resources.Load("earth_heightmap");
         //colormap = (Texture2D) Resources.Load("earth_color");
-    }
-
-    private Color[] GetColors()
-    {
-        palette.Generate();
-        return palette.GetColors();
     }
 }

@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Four
   m_EditorClassIdentifier: 
   dimensionsForGeneration: {x: 600, y: 300}
+  upscale: 0
   upscaleTo: {x: 1199, y: 599}
-  perlinScale: {x: 226, y: 226}
+  perlinScale: 86
   lacunarity: 3.26
   frequency: 1.09
   offset: 1.57
@@ -27,3 +28,6 @@ MonoBehaviour:
   interpolationType: 3
   powerRule: 2
   heightScale: 1
+  smoothUpscale: 1
+  autoSmoothDistance: 1
+  smoothDistance: 0

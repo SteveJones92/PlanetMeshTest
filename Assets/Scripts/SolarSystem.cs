@@ -72,19 +72,4 @@ public class SolarSystem : MonoBehaviour
     [SerializeField] private string _sceneName = "DemoForClass1";
 
     private AsyncOperation _asyncOperation;
-
-    private IEnumerator LoadSceneAsyncProcess(string sceneName)
-    {
-        // Begin to load the Scene you have specified.
-        this._asyncOperation = SceneManager.LoadSceneAsync(sceneName);
-
-        // Don't let the Scene activate until you allow it to.
-        this._asyncOperation.allowSceneActivation = false;
-
-        //while (!this._asyncOperation.isDone)
-        //{
-            //yield return null;
-        //}
-        yield return null;
-    }
 }
