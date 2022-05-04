@@ -28,6 +28,8 @@ public class Planet : MonoBehaviour
     [InlineEditor(InlineEditorModes.FullEditor)]
     public MultiColorPalette palette;
 
+    public bool seedChange;
+
     // this exists across planets as loaded meshes from the files, don't want to redo a lot
     private static SavedMeshes _meshes;
 
@@ -154,6 +156,7 @@ public class Planet : MonoBehaviour
     {
         // will only create if it doesnt exist already at the output name
         CreateMeshFiles();
+        if (seedChange) noise.seed = Random.Range(1000, 10000);
         // create the map from the values to load heightmap and colormap
         CreateMap();
         // set the color and values
