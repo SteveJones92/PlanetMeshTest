@@ -10,24 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
-  m_Name: Four
+  m_Name: m_n_Five
   m_EditorClassIdentifier: 
-  dimensionsForGeneration: {x: 600, y: 300}
+  dimensionsForGeneration: {x: 300, y: 150}
   upscale: 1
-  upscaleTo: {x: 1799, y: 899}
-  perlinScale: 79
-  lacunarity: 5
-  frequency: 3.49
+  upscaleTo: {x: 1150, y: 570}
+  perlinScale: 75
+  lacunarity: 10
+  frequency: 5
   offset: 0
   octaves: 5
   h: 0.07
   gain: 0.03
-  seed: 0
+  seed: 2964
   fractalType: 0
   basisType: 3
   interpolationType: 3
-  powerRule: 1
-  heightScale: 7
-  smoothUpscale: 1
-  autoSmoothDistance: 1
-  smoothDistance: 0
+  powerRule: 3
+  heightScale: 14
+  heightPower: 1
+  smooth: 1
+  smoothDistance: 4
+  resampleRatio: 0.4

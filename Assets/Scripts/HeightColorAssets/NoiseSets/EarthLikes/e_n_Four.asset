@@ -12,22 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
   m_Name: e_n_Four
   m_EditorClassIdentifier: 
-  dimensionsForGeneration: {x: 600, y: 300}
-  upscale: 0
-  upscaleTo: {x: 1199, y: 599}
-  perlinScale: 86
-  lacunarity: 3.26
+  dimensionsForGeneration: {x: 300, y: 150}
+  upscale: 1
+  upscaleTo: {x: 1150, y: 570}
+  perlinScale: 81
+  lacunarity: 3.32
   frequency: 1.09
   offset: 1.57
   octaves: 4
   h: 0
   gain: 0
-  seed: 0
+  seed: 7256
   fractalType: 3
   basisType: 3
   interpolationType: 3
-  powerRule: 2
-  heightScale: 1
-  smoothUpscale: 1
-  autoSmoothDistance: 1
-  smoothDistance: 0
+  powerRule: 1.3
+  heightScale: 2
+  heightPower: 1
+  smooth: 1
+  smoothDistance: 1
+  resampleRatio: 0.2

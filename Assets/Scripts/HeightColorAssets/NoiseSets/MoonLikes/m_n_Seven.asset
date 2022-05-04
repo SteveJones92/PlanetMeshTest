@@ -10,24 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
-  m_Name: e_n_Five
+  m_Name: m_n_Seven
   m_EditorClassIdentifier: 
-  dimensionsForGeneration: {x: 600, y: 300}
-  upscale: 0
-  upscaleTo: {x: 600, y: 300}
-  perlinScale: 105
-  lacunarity: 1.1
-  frequency: 2
-  offset: 1.13
-  octaves: 5
-  h: 0.12
-  gain: 0.1
-  seed: 0
-  fractalType: 4
+  dimensionsForGeneration: {x: 300, y: 150}
+  upscale: 1
+  upscaleTo: {x: 1150, y: 570}
+  perlinScale: 468
+  lacunarity: 3.49
+  frequency: 5
+  offset: 0
+  octaves: 4
+  h: 0.07
+  gain: 0.03
+  seed: 7152
+  fractalType: 0
   basisType: 3
-  interpolationType: 3
-  powerRule: 2
-  heightScale: 1
-  smoothUpscale: 1
-  autoSmoothDistance: 1
-  smoothDistance: 0
+  interpolationType: 1
+  powerRule: 0.6
+  heightScale: 11
+  heightPower: 1
+  smooth: 1
+  smoothDistance: 1
+  resampleRatio: 0.3

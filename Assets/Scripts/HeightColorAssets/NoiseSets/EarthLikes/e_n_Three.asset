@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
   m_Name: e_n_Three
   m_EditorClassIdentifier: 
-  dimensionsForGeneration: {x: 600, y: 300}
-  upscale: 0
-  upscaleTo: {x: 1159, y: 599}
+  dimensionsForGeneration: {x: 300, y: 150}
+  upscale: 1
+  upscaleTo: {x: 1150, y: 570}
   perlinScale: 72
   lacunarity: 3.78
   frequency: 0.72
@@ -28,6 +28,7 @@ MonoBehaviour:
   interpolationType: 3
   powerRule: 1.5
   heightScale: 2
-  smoothUpscale: 1
-  autoSmoothDistance: 1
-  smoothDistance: 0
+  heightPower: 2
+  smooth: 1
+  smoothDistance: 1
+  resampleRatio: 0.5
