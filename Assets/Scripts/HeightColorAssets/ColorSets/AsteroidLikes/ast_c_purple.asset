@@ -15,26 +15,26 @@ MonoBehaviour:
   inputColors:
   - color: {r: 0.34187734, g: 0.18241958, b: 0.4056604, a: 1}
     degreesHueShift: 5
-    variationsToGenerate: 8
+    variationsToGenerate: 5
   - color: {r: 0.34630054, g: 0.17758395, b: 0.38679248, a: 0}
     degreesHueShift: 3
-    variationsToGenerate: 8
+    variationsToGenerate: 1
   - color: {r: 0.51447946, g: 0.34021595, b: 0.5754717, a: 0}
     degreesHueShift: 5
     variationsToGenerate: 8
   - color: {r: 0.67764336, g: 0.45834813, b: 0.7075472, a: 0}
     degreesHueShift: 3
-    variationsToGenerate: 8
+    variationsToGenerate: 15
   - color: {r: 0.70551354, g: 0.5870713, b: 0.7264151, a: 0}
     degreesHueShift: 0
-    variationsToGenerate: 8
-  randomRatios: 0
+    variationsToGenerate: 13
+  randomRatios: 1
   ratios:
-  - 0.2
-  - 0.2
-  - 0.2
-  - 0.2
-  - 0.2
+  - 0.12798165
+  - 0.02293578
+  - 0.19770642
+  - 0.34633029
+  - 0.30504587
   detail: 44
   outputColors:
   - {r: 0.11240438, g: 0.062706724, b: 0.13944575, a: 1}

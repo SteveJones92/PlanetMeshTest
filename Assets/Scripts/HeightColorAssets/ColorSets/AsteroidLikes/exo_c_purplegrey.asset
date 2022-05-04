@@ -15,10 +15,10 @@ MonoBehaviour:
   inputColors:
   - color: {r: 0.23294455, g: 0.16690399, b: 0.2735849, a: 0}
     degreesHueShift: 5
-    variationsToGenerate: 5
+    variationsToGenerate: 4
   - color: {r: 0.254717, g: 0.253916, b: 0.253916, a: 1}
     degreesHueShift: 5
-    variationsToGenerate: 5
+    variationsToGenerate: 6
   - color: {r: 0.4433962, g: 0.4433962, b: 0.4433962, a: 0}
     degreesHueShift: 3
     variationsToGenerate: 5
@@ -27,14 +27,14 @@ MonoBehaviour:
     variationsToGenerate: 5
   - color: {r: 0.735849, g: 0.735849, b: 0.735849, a: 0}
     degreesHueShift: 0
-    variationsToGenerate: 5
-  randomRatios: 0
+    variationsToGenerate: 3
+  randomRatios: 1
   ratios:
-  - 0.2
-  - 0.2
-  - 0.2
-  - 0.2
-  - 0.2
+  - 0.1921363
+  - 0.24639581
+  - 0.2283093
+  - 0.2068152
+  - 0.12634338
   detail: 25
   outputColors:
   - {r: 0.0910442, g: 0.0667616, b: 0.109433964, a: 1}
