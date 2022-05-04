@@ -65,14 +65,8 @@ public class SolarSystem : MonoBehaviour
         int i = 0;
         foreach (var obj in objs)
         {
-            if (Random.Range(0f, 1f) > 0.5f)
-            {
-                obj.RotateAround(transform.position, transform.up, distances[i] * Time.deltaTime);
-            }
-            else
-            {
-                obj.Rotate(transform.up, rotations[i] * Time.deltaTime);
-            }
+            obj.RotateAround(transform.position, transform.up, distances[i] * Time.deltaTime);
+            obj.Rotate(transform.up, rotations[i] * Time.deltaTime);
             i++;
         }
     }
