@@ -29,7 +29,7 @@ public class SolarSystem : MonoBehaviour
         }
     }
 
-    private void OnPreload(InputValue inp)
+    private void OnPreload()
     {
         if (_asyncOperation == null)
         {
@@ -42,12 +42,20 @@ public class SolarSystem : MonoBehaviour
         //this._asyncOperation.allowSceneActivation = false;
     }
 
-    private void OnActivate(InputValue inp)
+    private void OnActivate()
     {
         // Press the + key to activate the Scene.
         if (_asyncOperation != null)
         {
             this._asyncOperation.allowSceneActivation = true;
+        }
+    }
+
+    private void OnPrint()
+    {
+        foreach (var obj in objs)
+        {
+            obj.GetComponent<Planet>().PrintOutMap();
         }
     }
 

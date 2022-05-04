@@ -76,6 +76,17 @@ public class IcosphereMesh
         //_mow = EllipseScaleOutward(_m);
         _pow = EllipseScaleOutward(_p);
         CalculateAxes();
+        
+        if (!Directory.Exists("Assets"))
+        {
+            Directory.CreateDirectory("Assets");
+        }
+
+        if (!Directory.Exists("Assets/Resources"))
+        {
+            Directory.CreateDirectory("Assets/Resources");
+        }
+        
         CreateMeshes(generations, outputName);
     }
     

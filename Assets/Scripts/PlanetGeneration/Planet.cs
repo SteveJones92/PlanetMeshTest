@@ -19,12 +19,7 @@ public class Planet : MonoBehaviour
     [InlineEditor(InlineEditorModes.FullEditor)]
     public NoiseColorGroup mapLists;
     [InlineEditor(InlineEditorModes.FullEditor)]
-    public PlanetNoiseGroup noiseGroup;
-    [InlineEditor(InlineEditorModes.FullEditor)]
     public PlanetNoise noise;
-
-    [InlineEditor(InlineEditorModes.FullEditor)]
-    public MultiColorPaletteGroup paletteGroup;
     [InlineEditor(InlineEditorModes.FullEditor)]
     public MultiColorPalette palette;
 
@@ -93,14 +88,14 @@ public class Planet : MonoBehaviour
     [ShowInInspector]
     private void LoadRandomPalette()
     {
-        palette = paletteGroup.GetRandomPaletteList().GetRandomPalette();
+        palette = mapLists.GetRandomPaletteList().GetRandomPalette();
         palette = Instantiate(palette);
     }
 
     [ShowInInspector]
     private void LoadRandomNoise()
     {
-        noise = noiseGroup.GetRandomNoiseList().GetRandomNoise();
+        noise = mapLists.GetRandomNoiseList().GetRandomNoise();
         noise = Instantiate(noise);
         scale = noise.heightScale;
         noise.seed = Random.Range(1000, 10000);
@@ -176,7 +171,7 @@ public class Planet : MonoBehaviour
     }
 
     [ShowInInspector]
-    private void PrintOutMap()
+    public void PrintOutMap()
     {
         _map.CreateTextureImages(name);
     }

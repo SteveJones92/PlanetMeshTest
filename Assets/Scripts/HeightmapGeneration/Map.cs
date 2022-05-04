@@ -302,6 +302,15 @@ public class Map
     // output the heightmap and colormap as png images
     public void CreateTextureImages(string name)
     {
+        if (!Directory.Exists("Assets"))
+        {
+            Directory.CreateDirectory("Assets");
+        }
+
+        if (!Directory.Exists("Assets/Maps"))
+        {
+            Directory.CreateDirectory("Assets/Maps");
+        }
         var texs = GetTextures();
         File.WriteAllBytes("Assets/Maps/height" + name + ".png", texs[0].EncodeToPNG());
         File.WriteAllBytes("Assets/Maps/color" + name + ".png", texs[1].EncodeToPNG());
