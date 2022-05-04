@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
-  m_Name: el_n_island
+  m_Name: el_n_ice_island
   m_EditorClassIdentifier: 
   dimensionsForGeneration: {x: 300, y: 150}
   upscale: 1
   upscaleTo: {x: 1150, y: 570}
-  perlinScale: 5
+  perlinScale: 20
   lacunarity: 3.57
-  frequency: 0.33
+  frequency: 1.12
   offset: 0.12
   octaves: 3
   h: 1
   gain: 0
   seed: 4
-  fractalType: 0
+  fractalType: 2
   basisType: 3
   interpolationType: 3
-  powerRule: 5
+  powerRule: 1
   heightScale: 1
   heightPower: 1
   smooth: 1
   smoothDistance: 1
-  resampleRatio: 0.4
+  resampleRatio: 0.35
