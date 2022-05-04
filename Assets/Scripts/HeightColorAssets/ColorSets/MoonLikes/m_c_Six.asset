@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71fdfe66b4ae2554fa497d5168053c93, type: 3}
-  m_Name: m_Six
+  m_Name: m_c_Six
   m_EditorClassIdentifier: 
   inputColors:
   - color: {r: 0.31132078, g: 0.010298456, b: 0.0014684978, a: 0}
