@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
-  m_Name: TestNoise
+  m_Name: exo_n_cthulhu1
   m_EditorClassIdentifier: 
   dimensionsForGeneration: {x: 1000, y: 500}
   upscale: 0
   upscaleTo: {x: 0, y: 0}
-  perlinScale: 15
-  lacunarity: 6.03
-  frequency: 0.31
-  offset: 0.12
+  perlinScale: 244
+  lacunarity: 10.46
+  frequency: 1.5
+  offset: 0.48
   octaves: 3
   h: 1
   gain: 0
-  seed: 4
-  fractalType: 0
+  seed: 7
+  fractalType: 1
   basisType: 3
   interpolationType: 3
-  powerRule: 5
-  heightScale: 1
-  heightPower: 1
-  smooth: 0
+  powerRule: 1
+  heightScale: 2
+  heightPower: 2
+  smooth: 1
   smoothDistance: 1
   resampleRatio: 0
