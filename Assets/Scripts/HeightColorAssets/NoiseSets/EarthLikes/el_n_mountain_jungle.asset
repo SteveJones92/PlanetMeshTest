@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
   m_Name: el_n_mountain_jungle
   m_EditorClassIdentifier: 
-  dimensionsForGeneration: {x: 1000, y: 500}
-  upscale: 0
-  upscaleTo: {x: 0, y: 0}
-  perlinScale: 100
+  dimensionsForGeneration: {x: 300, y: 150}
+  upscale: 1
+  upscaleTo: {x: 1150, y: 570}
+  perlinScale: 33
   lacunarity: 4.6
   frequency: 1.5
   offset: 0.48
@@ -29,6 +29,6 @@ MonoBehaviour:
   powerRule: 1
   heightScale: 1.6
   heightPower: 2
-  smooth: 0
+  smooth: 1
   smoothDistance: 1
-  resampleRatio: 0
+  resampleRatio: 0.35

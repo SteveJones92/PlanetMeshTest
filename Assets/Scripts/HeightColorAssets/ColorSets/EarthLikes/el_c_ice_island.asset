@@ -15,47 +15,45 @@ MonoBehaviour:
   inputColors:
   - color: {r: 0.3052687, g: 0.36811265, b: 0.990566, a: 0}
     degreesHueShift: 5
-    variationsToGenerate: 2
+    variationsToGenerate: 1
   - color: {r: 0.4360982, g: 0.5107934, b: 0.990566, a: 1}
     degreesHueShift: 0
-    variationsToGenerate: 2
+    variationsToGenerate: 1
   - color: {r: 0.40806332, g: 0.68499064, b: 0.990566, a: 0}
     degreesHueShift: 0
     variationsToGenerate: 2
   - color: {r: 0.3681618, g: 0.4201375, b: 0.6886792, a: 0}
     degreesHueShift: 0
-    variationsToGenerate: 2
+    variationsToGenerate: 6
   - color: {r: 0.5882579, g: 0.745283, b: 0.6295804, a: 0}
     degreesHueShift: 0
-    variationsToGenerate: 2
+    variationsToGenerate: 0
   - color: {r: 0.85890585, g: 0.8867924, b: 0.87117594, a: 0}
     degreesHueShift: 0
     variationsToGenerate: 2
   - color: {r: 0.990566, g: 0.990566, b: 0.990566, a: 0}
     degreesHueShift: 0
-    variationsToGenerate: 2
-  randomRatios: 0
+    variationsToGenerate: 0
+  randomRatios: 1
   ratios:
-  - 0.14285715
-  - 0.14285715
-  - 0.14285715
-  - 0.14285715
-  - 0.14285715
-  - 0.14285715
-  - 0.14285715
+  - 0.07871104
+  - 0.09403064
+  - 0.17538299
+  - 0.41627046
+  - 0.06339144
+  - 0.17221342
+  - 0
   detail: 15
   outputColors:
-  - {r: 0.19079295, g: 0.2086549, b: 0.6191038, a: 1}
-  - {r: 0.3052687, g: 0.34526935, b: 0.990566, a: 1}
-  - {r: 0.2725614, g: 0.31924587, b: 0.6191038, a: 1}
+  - {r: 0.3052687, g: 0.4023775, b: 0.990566, a: 1}
   - {r: 0.4360982, g: 0.5107934, b: 0.990566, a: 1}
   - {r: 0.25503957, g: 0.4281192, b: 0.6191038, a: 1}
   - {r: 0.40806332, g: 0.6849907, b: 0.990566, a: 1}
+  - {r: 0.13806067, g: 0.15755157, b: 0.2582547, a: 1}
+  - {r: 0.1840809, g: 0.21006876, b: 0.3443396, a: 1}
   - {r: 0.23010112, g: 0.26258597, b: 0.4304245, a: 1}
+  - {r: 0.27612135, g: 0.31510314, b: 0.5165094, a: 1}
+  - {r: 0.3221416, g: 0.36762035, b: 0.6025943, a: 1}
   - {r: 0.3681618, g: 0.42013752, b: 0.6886792, a: 1}
-  - {r: 0.3676612, g: 0.4658019, b: 0.39348775, a: 1}
-  - {r: 0.5882579, g: 0.745283, b: 0.6295804, a: 1}
   - {r: 0.5368161, g: 0.55424523, b: 0.5444849, a: 1}
   - {r: 0.85890585, g: 0.8867924, b: 0.87117594, a: 1}
-  - {r: 0.6191038, g: 0.6191038, b: 0.6191038, a: 1}
-  - {r: 0.990566, g: 0.990566, b: 0.990566, a: 1}

@@ -12,4 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8599c5c4605f1422b9160c02b622ce12, type: 3}
   m_Name: AsteroidLikeColors
   m_EditorClassIdentifier: 
-  list: []
+  list:
+  - {fileID: 11400000, guid: 0a41ddea28ff65e46b3353e9978e7351, type: 2}
+  - {fileID: 11400000, guid: d64d83cb8eb9a624781c2d17f7505587, type: 2}
+  - {fileID: 11400000, guid: 12f94403394bcab4085d3e223fac5002, type: 2}
+  - {fileID: 11400000, guid: f57978136cefbc748a6b2e44473bb1ff, type: 2}
+  - {fileID: 11400000, guid: a1529184191730d4d9b255de91ecfa92, type: 2}
+  - {fileID: 11400000, guid: 66fba1602f56f1e43a07b670a7d92cf9, type: 2}
