@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb829d27a20c4889aeebf2ce2de5c5c, type: 3}
   m_Name: exo_n_cthulhu1
   m_EditorClassIdentifier: 
-  dimensionsForGeneration: {x: 1000, y: 500}
-  upscale: 0
-  upscaleTo: {x: 0, y: 0}
-  perlinScale: 244
+  dimensionsForGeneration: {x: 300, y: 150}
+  upscale: 1
+  upscaleTo: {x: 1150, y: 570}
+  perlinScale: 85
   lacunarity: 10.46
   frequency: 1.5
   offset: 0.48
@@ -25,10 +25,10 @@ MonoBehaviour:
   seed: 7
   fractalType: 1
   basisType: 3
-  interpolationType: 3
+  interpolationType: 2
   powerRule: 1
   heightScale: 2
   heightPower: 2
   smooth: 1
   smoothDistance: 1
-  resampleRatio: 0
+  resampleRatio: 0.44
