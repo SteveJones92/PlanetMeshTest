@@ -9,9 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 257b08b99f5da452baf7b028c99d5691, type: 3}
-  m_Name: AllPlanetTypes
+  m_Script: {fileID: 11500000, guid: 8599c5c4605f1422b9160c02b622ce12, type: 3}
+  m_Name: AsteroidLikeColors
   m_EditorClassIdentifier: 
-  list:
-  - {fileID: 11400000, guid: 6e8955c02a2e546899492fff650986bd, type: 2}
-  - {fileID: 11400000, guid: fa81cc5dfa7fd45fe96f110e5d60ea22, type: 2}
+  list: []

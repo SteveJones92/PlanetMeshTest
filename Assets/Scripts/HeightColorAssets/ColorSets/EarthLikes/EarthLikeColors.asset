@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8599c5c4605f1422b9160c02b622ce12, type: 3}
-  m_Name: EarthLike
+  m_Name: EarthLikeColors
   m_EditorClassIdentifier: 
   list:
   - {fileID: 11400000, guid: 3a8bebaeaf78749f5b85e4a44536b696, type: 2}

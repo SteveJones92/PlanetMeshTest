@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72a6c8ac164d042419bb7e1dc91a2083, type: 3}
-  m_Name: MoonLikes
+  m_Name: MoonLikeNoises
   m_EditorClassIdentifier: 
   list:
   - {fileID: 11400000, guid: 66b11a1c5cc4145abb70561cf7148cca, type: 2}
