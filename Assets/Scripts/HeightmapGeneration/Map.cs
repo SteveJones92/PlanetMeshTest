@@ -110,7 +110,6 @@ public class Map
                  newX = Mathf.Cos(longitude * Mathf.PI) * longitudeR + _noiseSettings.offset;
                  newZ = Mathf.Sin(longitude * Mathf.PI) * longitudeR + _noiseSettings.offset;
 
-
                  // get the noise at each point, all the calculations were for 3D noise sampling on a sphere
                  float grayValue = (float) _noiseFunction.Get(
                      (newX + _noiseSettings.offset) / (float)_noiseSettings.perlinScale, 
